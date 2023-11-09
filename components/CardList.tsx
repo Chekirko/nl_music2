@@ -1,0 +1,17 @@
+import { alphabet } from "@/constants";
+import AlphCard from "./AlphCard";
+import { CardListProps } from "@/types";
+
+const CardList = ({ songs }: CardListProps) => {
+  return (
+    <section className="feed">
+      <div className="mt-16 prompt_layout">
+        {alphabet.map((letter) => (
+          <AlphCard letter={letter} songs={songs} />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default CardList;
