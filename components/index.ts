@@ -1,8 +1,23 @@
 import Hero from "./Hero";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import MinistriesList from "./MinistriesList";
 import Form from "./Form";
 import SongBlock from "./SongBlock";
+import SongsFeed from "./SongsFeed";
+import SearchBar from "./SearchBar";
+import CardList from "./CardList";
+import AlphCard from "./AlphCard";
+import SearchTitle from './SearchTitle';
 
-export { Hero, Navbar, Footer, MinistriesList, Form, SongBlock };
+export {
+  Hero,
+  Navbar,
+  Footer,
+  Form,
+  SongBlock,
+  SearchBar,
+  CardList,
+  SongsFeed,
+  AlphCard,
+  SearchTitle,
+};

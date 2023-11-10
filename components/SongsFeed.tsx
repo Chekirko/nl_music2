@@ -4,6 +4,7 @@ import { GettedSong } from "@/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CardList from "./CardList";
+import { SearchBar } from ".";
 
 const SongsFeed = () => {
   const [songs, setSongs] = useState<GettedSong[]>([]);
@@ -23,6 +24,7 @@ const SongsFeed = () => {
   }, []);
   return (
     <div className="w-full">
+      <SearchBar songs={songs} />
       <CardList songs={songs} />
     </div>
   );

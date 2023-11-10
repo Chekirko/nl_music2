@@ -4,11 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
+*, ::before, ::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: "Manrope", sans-serif;
+    border-color: white;    
 }
 
 /* General Styles */
@@ -102,4 +103,22 @@
 
 .form_input {
     @apply w-full flex rounded-lg mt-2 p-3 text-sm text-gray-500 outline-0;
+}
+
+/* Search Styles */
+
+.search-title {
+    @apply flex-1 max-sm:w-full flex justify-start items-center;
+}
+
+.search-title__input {
+    @apply w-full h-[48px] pl-12 p-4 rounded-l-full max-sm:rounded-full bg-light-white outline-none cursor-pointer text-sm;
+}
+
+.search-title__options {
+    @apply absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm;
+}
+
+.search-title__option {
+    @apply cursor-default select-none py-2 pl-10 pr-4;
 }
