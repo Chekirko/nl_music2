@@ -9,8 +9,7 @@ const Form = ({ type, song, setSong, submitting, handleSubmit }: FormProps) => {
         <span className="blue_gradient">{type} пісню</span>
       </h1>
       <p className="desc text-left max-w-md">
-        {type} та поділись зі всім світом цитатою, яка тобі сподобалась і нехай
-        це посприяє духовному розвитку кожного читача
+        {type} та слова та акорди пісні, щоб всі були в курсі і ніхто не лажав
       </p>
 
       <form

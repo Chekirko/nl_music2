@@ -5,7 +5,7 @@ import { CardListProps } from "@/types";
 const CardList = ({ songs }: CardListProps) => {
   return (
     <section className="feed">
-      <div className="mt-16 prompt_layout">
+      <div className="prompt_layout">
         {alphabet.map((letter) => (
           <AlphCard letter={letter} songs={songs} />
         ))}

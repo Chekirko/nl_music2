@@ -37,7 +37,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
 
   return (
     <div className="padding-x">
-      <h1 className="head_text blue_gradient ">{song?.title}</h1>
+      <h1 className="head_text  text-blue-600">{song?.title}</h1>
       <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
       <p className="mt-5">Тональність: {song?.key}</p>
       {song?.comment && song.comment !== "" && <p>Коментар: {song.comment}</p>}
