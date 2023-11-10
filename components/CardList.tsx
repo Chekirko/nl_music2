@@ -7,7 +7,7 @@ const CardList = ({ songs }: CardListProps) => {
     <section className="feed">
       <div className="prompt_layout">
         {alphabet.map((letter) => (
-          <AlphCard letter={letter} songs={songs} />
+          <AlphCard letter={letter} songs={songs} key={letter} />
         ))}
       </div>
     </section>

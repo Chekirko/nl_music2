@@ -1,10 +1,17 @@
 import { CardListProps } from "@/types";
-import { SearchTitle } from ".";
+import { SearchTitle, SearchWord } from ".";
 
 const SearchBar = ({ songs }: CardListProps) => {
   return (
-    <div>
-      <SearchTitle songs={songs} />
+    <div className="mt-4 flex">
+      <div>
+        <h2 className="mb-2 text-gray-600">Пошук за назвою</h2>
+        <SearchTitle songs={songs} />
+      </div>
+      <div>
+        <h2 className="mb-2 text-gray-600">Пошук за словами</h2>
+        <SearchWord songs={songs} />
+      </div>
     </div>
   );
 };

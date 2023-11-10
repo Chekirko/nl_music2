@@ -30,7 +30,11 @@ const AlphCard = ({ letter, songs }: AlphCardProps) => {
 
       <div className="pt-4">
         {filteredSongs.map((song) => (
-          <Link href={`/songs/${song._id}`} className="alph_link">
+          <Link
+            href={`/songs/${song._id}`}
+            className="alph_link"
+            key={song._id}
+          >
             {song.title}{" "}
           </Link>
         ))}

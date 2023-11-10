@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/20/solid";
 import Link from "next/link";
 
-const SearchTitle = ({ songs }: CardListProps) => {
+const SearchWord = ({ songs }: CardListProps) => {
   const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
   const [query, setQuery] = useState("");
 
@@ -18,7 +18,10 @@ const SearchTitle = ({ songs }: CardListProps) => {
     query === ""
       ? songs
       : songs.filter((song) => {
-          return song.title.toLowerCase().includes(query.toLowerCase());
+          const linesArray = song.blocks.map((block) => block.lines);
+          const text = linesArray.join("\n");
+
+          return text.toLowerCase().includes(query.toLowerCase());
         });
   return (
     <div className="w-72 flex flex-center gap-4">
@@ -97,4 +100,4 @@ const SearchTitle = ({ songs }: CardListProps) => {
   );
 };
 
-export default SearchTitle;
+export default SearchWord;

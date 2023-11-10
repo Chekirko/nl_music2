@@ -7,7 +7,8 @@ import SongsFeed from "./SongsFeed";
 import SearchBar from "./SearchBar";
 import CardList from "./CardList";
 import AlphCard from "./AlphCard";
-import SearchTitle from './SearchTitle';
+import SearchTitle from "./SearchTitle";
+import SearchWord from "./SearchWord";
 
 export {
   Hero,
@@ -20,4 +21,5 @@ export {
   SongsFeed,
   AlphCard,
   SearchTitle,
+  SearchWord,
 };
