@@ -1,9 +1,15 @@
 "use client";
 
+import { AgreeModalProps } from "@/types";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
 
-export default function AgreeModal() {
+export default function AgreeModal({
+  type,
+  question,
+  descr,
+  handleSubmit,
+}: AgreeModalProps) {
   let [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
@@ -14,6 +20,12 @@ export default function AgreeModal() {
     setIsOpen(true);
   }
 
+  const submitAndClose = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit(e);
+    closeModal();
+  };
+
   return (
     <>
       <div className="inset-0 flex items-center justify-center">
@@ -22,7 +34,7 @@ export default function AgreeModal() {
           onClick={openModal}
           className="rounded-md bg-black/20 px-4 py-2 text-sm font-medium text-white hover:bg-black/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
         >
-          Open dialog
+          {type}
         </button>
       </div>
 
@@ -56,22 +68,26 @@ export default function AgreeModal() {
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Payment successful
+                    {question}
                   </Dialog.Title>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      Your payment has been successfully submitted. We’ve sent
-                      you an email with all of the details of your order.
-                    </p>
+                    <p className="text-sm text-gray-500">{descr}</p>
                   </div>
 
-                  <div className="mt-4">
+                  <div className="flex mt-4 gap-4">
                     <button
-                      type="button"
+                      type="submit"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={submitAndClose}
+                    >
+                      Так, змінюю!
+                    </button>
+                    <button
+                      type="submit"
                       className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={closeModal}
                     >
-                      Got it, thanks!
+                      Скасувати
                     </button>
                   </div>
                 </Dialog.Panel>

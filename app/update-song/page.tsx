@@ -66,6 +66,8 @@ const UpdateSong = () => {
         setSong={setSong}
         submitting={submitting}
         handleSubmit={updateSong}
+        question="Впевнений?"
+        descr="Ти дійсно хочеш змінити цю пісню? Раджу тобі добре подумати, щоб не було проблем з іншими музикантами!"
       />
     </div>
   );

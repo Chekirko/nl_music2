@@ -3,7 +3,15 @@ import Link from "next/link";
 import { SongBlock } from ".";
 import AgreeModal from "./AgreeModal";
 
-const Form = ({ type, song, setSong, submitting, handleSubmit }: FormProps) => {
+const Form = ({
+  type,
+  song,
+  setSong,
+  submitting,
+  handleSubmit,
+  question,
+  descr,
+}: FormProps) => {
   return (
     <section className="w-full max-w-full flex-start flex-col">
       <h1 className="head_text text-left">
@@ -127,7 +135,12 @@ const Form = ({ type, song, setSong, submitting, handleSubmit }: FormProps) => {
           >
             {submitting ? `${type}...` : type}
           </button>
-          <AgreeModal />
+          <AgreeModal
+            type={type}
+            question={question}
+            descr={descr}
+            handleSubmit={handleSubmit}
+          />
         </div>
       </form>
     </section>

@@ -20,6 +20,8 @@ export interface FormProps {
   setSong: (song: GettedSong) => void;
   submitting: boolean;
   handleSubmit: (e: FormEvent) => void;
+  question: string;
+  descr: string;
 }
 
 export interface SongBlockProps {
@@ -72,4 +74,11 @@ export interface SongLinkProps {
   route: string;
   type: string;
   id?: string;
+}
+
+export interface AgreeModalProps {
+  type: string;
+  question: string;
+  descr: string;
+  handleSubmit: (e: FormEvent) => void;
 }
