@@ -5,6 +5,7 @@ export default function Home() {
   return (
     <main className="overflow-hidden">
       <Hero />
+
       <p>
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Corrupti modi
         facilis explicabo minima aperiam! Voluptatem exercitationem fugit,

@@ -3,9 +3,9 @@ import { SearchTitle, SearchWord } from ".";
 
 const SearchBar = ({ songs }: CardListProps) => {
   return (
-    <div className="mt-4 flex">
+    <div className="mt-4 flex sm:flex-row flex-col items-end">
       <div>
-        <h2 className="mb-2 text-gray-600">Пошук за назвою</h2>
+        <h2 className="mb-2 text-gray-600 mr-auto">Пошук за назвою</h2>
         <SearchTitle songs={songs} />
       </div>
       <div>

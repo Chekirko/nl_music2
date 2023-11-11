@@ -1,4 +1,5 @@
 "use client";
+import { SongLink } from "@/components";
 import { songData } from "@/constants/scheduleData";
 import { GettedSong } from "@/types";
 import Image from "next/image";
@@ -29,11 +30,14 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       });
       const song = await response.json();
       setSong(song);
-      console.log(song);
     };
 
     fetchSong();
   }, []);
+
+  const sortedBlocks = song?.blocks
+    .filter((block) => block.name !== "")
+    .sort((a, b) => Number(a.ind) - Number(b.ind));
 
   return (
     <div className="padding-x">
@@ -52,7 +56,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       )}
       <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
       <div>
-        {song?.blocks.map((block, index) => {
+        {sortedBlocks?.map((block, index) => {
           const lines = block.lines.split("\n");
           const renderLines = lines.map((line, i) => {
             let style;
@@ -84,6 +88,14 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
             </div>
           );
         })}
+      </div>
+
+      <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded">
+        <SongLink
+          route="/update-song"
+          type="Змінити пісню"
+          id={params.slug}
+        ></SongLink>
       </div>
       <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
       <div>

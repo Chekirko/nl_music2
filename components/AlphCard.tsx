@@ -39,11 +39,6 @@ const AlphCard = ({ letter, songs }: AlphCardProps) => {
           </Link>
         ))}
       </div>
-
-      {/* <p className="my-4 font-satoshi text-sm text-gray-700"></p> */}
-      {/* <h4 className="mb-4 font-satoshi font-semibold text-gray-700">
-        {letter}
-      </h4> */}
     </div>
   );
 };

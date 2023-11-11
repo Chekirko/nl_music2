@@ -1,24 +1,42 @@
 "use client";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { defaultSong } from "@/constants";
+
 import { Form } from "@/components";
+import { GettedSong } from "@/types";
+import { defaultSong } from "@/constants";
 
-const CreateSong = () => {
+const UpdateSong = () => {
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [song, setSong] = useState(defaultSong);
 
-  const createSong = async (e: FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [song, setSong] = useState<GettedSong>(defaultSong);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id") || "";
+    const fetchSong = async () => {
+      const response = await fetch(`/api/songs/single?id=${id}`, {
+        next: { revalidate: 60 },
+      });
+      const song = await response.json();
+      setSong(song);
+    };
+
+    fetchSong();
+  }, []);
+
+  const updateSong = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     const sortedBlocks = song.blocks.sort(
       (a, b) => Number(a.ind) - Number(b.ind)
     );
     try {
-      const response = await fetch("/api/songs/new", {
-        method: "POST",
+      const response = await fetch("/api/songs/change", {
+        method: "PUT",
         body: JSON.stringify({
+          _id: song._id,
           title: song.title,
           comment: song.comment,
           key: song.key,
@@ -31,7 +49,7 @@ const CreateSong = () => {
       });
 
       if (response.ok) {
-        router.push("/");
+        router.push(`/songs/${song._id}`);
       }
     } catch (error) {
       console.log(error);
@@ -43,14 +61,14 @@ const CreateSong = () => {
   return (
     <div className="padding-x">
       <Form
-        type="Додай"
+        type="Зміни"
         song={song}
         setSong={setSong}
         submitting={submitting}
-        handleSubmit={createSong}
+        handleSubmit={updateSong}
       />
     </div>
   );
 };
 
-export default CreateSong;
+export default UpdateSong;

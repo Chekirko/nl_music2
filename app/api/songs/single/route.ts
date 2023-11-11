@@ -16,8 +16,7 @@ export const GET = async (request: Request) => {
     if (!song) {
       return new Response("Song not found", { status: 404 });
     }
-    console.log(JSON.stringify(song));
-
+    
     return new Response(JSON.stringify(song), { status: 200 });
   } catch (error) {
     return new Response("Failed to fetch all songs", { status: 500 });

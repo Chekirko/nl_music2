@@ -16,16 +16,16 @@ export interface TableCardProps {
 
 export interface FormProps {
   type: string;
-  song: Song;
-  setSong: (song: Song) => void;
+  song: GettedSong;
+  setSong: (song: GettedSong) => void;
   submitting: boolean;
   handleSubmit: (e: FormEvent) => void;
 }
 
 export interface SongBlockProps {
-  song: Song;
+  song: GettedSong;
   block: Block;
-  setSong: (song: Song) => void;
+  setSong: (song: GettedSong) => void;
   index: number;
 }
 
@@ -66,4 +66,10 @@ export interface CardListProps {
 export interface AlphCardProps {
   letter: string;
   songs: Array<GettedSong>;
+}
+
+export interface SongLinkProps {
+  route: string;
+  type: string;
+  id?: string;
 }

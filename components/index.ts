@@ -9,6 +9,7 @@ import CardList from "./CardList";
 import AlphCard from "./AlphCard";
 import SearchTitle from "./SearchTitle";
 import SearchWord from "./SearchWord";
+import SongLink from "./SongLink";
 
 export {
   Hero,
@@ -22,4 +23,5 @@ export {
   AlphCard,
   SearchTitle,
   SearchWord,
+  SongLink,
 };

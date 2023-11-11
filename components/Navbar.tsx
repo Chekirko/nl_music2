@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { SongLink } from ".";
 
 const Navbar = () => {
   return (
@@ -16,9 +17,11 @@ const Navbar = () => {
         </Link>
 
         <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded">
-          <Link href="/create-song" className="font-bold">
-            Додати пісню
-          </Link>
+          <SongLink route="/create-song" type="Додати пісню"></SongLink>
+        </div>
+
+        <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded">
+          <SongLink route="/update-song" type="Змінити пісню"></SongLink>
         </div>
 
         <div>

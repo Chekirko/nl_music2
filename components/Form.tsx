@@ -1,6 +1,7 @@
 import { FormProps } from "@/types";
 import Link from "next/link";
 import { SongBlock } from ".";
+import AgreeModal from "./AgreeModal";
 
 const Form = ({ type, song, setSong, submitting, handleSubmit }: FormProps) => {
   return (
@@ -113,17 +114,20 @@ const Form = ({ type, song, setSong, submitting, handleSubmit }: FormProps) => {
         ))}
 
         <div className="flex-end mx-3 mb-5 gap-4">
-          <Link href="/" className="text-gray-500 text-sm">
+          <Link
+            href="/"
+            className="text-gray-500 hover:text-white text-sm hover:bg-blue-800 px-5 py-1.5 rounded-full"
+          >
             Cancel
           </Link>
-
           <button
             type="submit"
             disabled={submitting}
-            className="px-5 py-1.5 text-sm bg-orange-400 rounded-full text-white"
+            className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
           >
             {submitting ? `${type}...` : type}
           </button>
+          <AgreeModal />
         </div>
       </form>
     </section>
