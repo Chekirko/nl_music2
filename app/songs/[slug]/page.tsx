@@ -51,18 +51,21 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         </p>
       )}
       <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
-      {tags &&
-        tags.map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => {
-              router.push(`/songs/tags/${tag}?forwardedTag=${tag}`);
-            }}
-          >
-            {tag}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-2">
+        {tags &&
+          tags.map((tag) => (
+            <button
+              className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
+              key={tag}
+              type="button"
+              onClick={() => {
+                router.push(`/songs/tags/${tag}?forwardedTag=${tag}`);
+              }}
+            >
+              {tag}
+            </button>
+          ))}
+      </div>
       {tags && (
         <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
       )}
@@ -101,7 +104,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         })}
       </div>
 
-      <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded">
+      <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
         <SongLink
           route="/update-song"
           type="Змінити пісню"

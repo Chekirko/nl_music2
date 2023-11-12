@@ -11,6 +11,7 @@ import SearchTitle from "./SearchTitle";
 import SearchWord from "./SearchWord";
 import SongLink from "./SongLink";
 import NavDropdownMenu from "./NavDropdownMenu";
+import TagCard from "./TagCard";
 
 export {
   Hero,
@@ -26,4 +27,5 @@ export {
   SearchWord,
   SongLink,
   NavDropdownMenu,
+  TagCard,
 };

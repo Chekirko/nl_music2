@@ -4,7 +4,7 @@ import { GettedSong } from "@/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CardList from "./CardList";
-import { SearchBar } from ".";
+import { SearchBar, SongLink } from ".";
 
 const SongsFeed = () => {
   const [songs, setSongs] = useState<GettedSong[]>([]);
@@ -24,7 +24,12 @@ const SongsFeed = () => {
   }, []);
   return (
     <div className="w-full">
-      <SearchBar songs={songs} />
+      <div className="flex flex-col lg:flex-row items-end lg:items-start lg:justify-between">
+        <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded h-fit max-w-max mb-4">
+          <SongLink route="/create-song" type="Додати пісню"></SongLink>
+        </div>
+        <SearchBar songs={songs} />
+      </div>
       <CardList songs={songs} />
     </div>
   );

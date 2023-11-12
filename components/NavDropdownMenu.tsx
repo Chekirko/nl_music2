@@ -13,7 +13,7 @@ export default function NavDropdownMenu() {
           <Menu.Button className="inline-flex w-full justify-center rounded-md bg-transparent  hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
             Пісні
             <ChevronDownIcon
-              className="ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-violet-100"
+              className="ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-blue-600"
               aria-hidden="true"
             />
           </Menu.Button>

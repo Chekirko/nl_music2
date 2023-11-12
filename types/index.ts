@@ -70,6 +70,10 @@ export interface AlphCardProps {
   letter: string;
   songs: Array<GettedSong>;
 }
+export interface TagCardProps {
+  tag: string | null;
+  songs: Array<GettedSong>;
+}
 
 export interface SongLinkProps {
   route: string;
