@@ -34,6 +34,7 @@ export const alphabet = [
 export const defaultSong = {
   _id: 1,
   title: "",
+  tags: "",
   comment: "",
   key: "",
   mode: "",

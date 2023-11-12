@@ -10,6 +10,7 @@ import AlphCard from "./AlphCard";
 import SearchTitle from "./SearchTitle";
 import SearchWord from "./SearchWord";
 import SongLink from "./SongLink";
+import NavDropdownMenu from "./NavDropdownMenu";
 
 export {
   Hero,
@@ -24,4 +25,5 @@ export {
   SearchTitle,
   SearchWord,
   SongLink,
+  NavDropdownMenu,
 };

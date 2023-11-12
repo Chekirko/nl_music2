@@ -77,6 +77,18 @@ const Form = ({
 
         <label>
           <span className="font-satoshi font-semibold text-base text-gray-700">
+            Теги (Ключові слова для пошуку за темами)
+          </span>
+          <input
+            value={song.tags}
+            onChange={(e) => setSong({ ...song, tags: e.target.value })}
+            placeholder="Напиши через пробіл ключові слова, напр.: спомин хвала і т д"
+            className="form_input"
+          />
+        </label>
+
+        <label>
+          <span className="font-satoshi font-semibold text-base text-gray-700">
             Оригінал пісні
           </span>
           <input
@@ -139,6 +151,7 @@ const Form = ({
             type={type}
             question={question}
             descr={descr}
+            submitting={submitting}
             handleSubmit={handleSubmit}
           />
         </div>

@@ -39,6 +39,7 @@ const UpdateSong = () => {
           _id: song._id,
           title: song.title,
           comment: song.comment,
+          tags: song.tags,
           key: song.key,
           mode: song.mode,
           origin: song.origin,

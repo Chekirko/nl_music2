@@ -2,7 +2,7 @@ import Song from "@/models/song";
 import { connectToDB } from "@/utils/database";
 
 export const POST = async (req: Request, res: Response) => {
-  const { title, comment, key, mode, origin, video, ourVideo, blocks } =
+  const { title, comment, tags, key, mode, origin, video, ourVideo, blocks } =
     await req.json();
 
   try {
@@ -11,6 +11,7 @@ export const POST = async (req: Request, res: Response) => {
     const newSong = new Song({
       title,
       comment,
+      tags,
       key,
       mode,
       origin,

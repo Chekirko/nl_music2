@@ -52,6 +52,7 @@ export interface Block {
 export interface GettedSong {
   _id: number;
   title: string;
+  tags: string;
   comment: string;
   key: string;
   mode: string;
@@ -80,5 +81,6 @@ export interface AgreeModalProps {
   type: string;
   question: string;
   descr: string;
+  submitting: boolean;
   handleSubmit: (e: FormEvent) => void;
 }

@@ -8,6 +8,7 @@ export default function AgreeModal({
   type,
   question,
   descr,
+  submitting,
   handleSubmit,
 }: AgreeModalProps) {
   let [isOpen, setIsOpen] = useState(false);
@@ -77,13 +78,14 @@ export default function AgreeModal({
                   <div className="flex mt-4 gap-4">
                     <button
                       type="submit"
+                      disabled={submitting}
                       className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={submitAndClose}
                     >
-                      Так, змінюю!
+                      {submitting ? "Одну секунду..." : "Так!"}
                     </button>
                     <button
-                      type="submit"
+                      type="button"
                       className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       onClick={closeModal}
                     >

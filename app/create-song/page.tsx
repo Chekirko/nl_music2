@@ -21,6 +21,7 @@ const CreateSong = () => {
         body: JSON.stringify({
           title: song.title,
           comment: song.comment,
+          tags: song.tags,
           key: song.key,
           mode: song.mode,
           origin: song.origin,
@@ -48,6 +49,8 @@ const CreateSong = () => {
         setSong={setSong}
         submitting={submitting}
         handleSubmit={createSong}
+        question="Впевнений?"
+        descr="Ти дійсно хочеш додати таку пісню? Подумай, може вона не сподобається іншим!"
       />
     </div>
   );

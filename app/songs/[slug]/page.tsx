@@ -5,14 +5,7 @@ import { GettedSong } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-// export async function generateStaticParams() {
-//   const songs = await fetch("/api/songs").then((res) => res.json());
-
-//   return songs.map((song: GettedSong) => ({
-//     slug: song._id,
-//   }));
-// }
+import { useRouter } from "next/navigation";
 
 interface SingleSongPageProps {
   params: {
@@ -21,6 +14,7 @@ interface SingleSongPageProps {
 }
 
 const SingleSongPage = ({ params }: SingleSongPageProps) => {
+  const router = useRouter();
   const [song, setSong] = useState<GettedSong>();
 
   useEffect(() => {
@@ -39,6 +33,8 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     .filter((block) => block.name !== "")
     .sort((a, b) => Number(a.ind) - Number(b.ind));
 
+  const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
+
   return (
     <div className="padding-x">
       <h1 className="head_text  text-blue-600">{song?.title}</h1>
@@ -55,6 +51,21 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         </p>
       )}
       <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
+      {tags &&
+        tags.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => {
+              router.push(`/songs/tags/${tag}?forwardedTag=${tag}`);
+            }}
+          >
+            {tag}
+          </button>
+        ))}
+      {tags && (
+        <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
+      )}
       <div>
         {sortedBlocks?.map((block, index) => {
           const lines = block.lines.split("\n");

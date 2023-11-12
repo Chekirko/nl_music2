@@ -9,6 +9,10 @@ const SongSchema = new Schema({
     type: String,
     required: [false, "Comment is not required"],
   },
+  tags: {
+    type: String,
+    required: [false, "Tags is not required"],
+  },
   key: {
     type: String,
     required: [true, "Key is required"],
