@@ -1,41 +1,89 @@
+import User from "@/models/user";
+import { connectToDB } from "@/utils/database";
 import type { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bycrptjs from "bcryptjs";
 
 export const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
-      // The name to display on the sign in form (e.g. 'Sign in with...')
-      name: "Credentials",
-      // The credentials is used to generate a suitable form on the sign in page.
-      // You can specify whatever fields you are expecting to be submitted.
-      // e.g. domain, username, password, 2FA token, etc.
-      // You can pass any HTML attribute to the <input> tag through the object.
-      credentials: {
-        email: { label: "Email", type: "email", placeholder: "user@gmail.com" },
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials, req) {
-        // You need to provide your own logic here that takes the credentials
-        // submitted and returns either a object representing a user or value
-        // that is false/null if the credentials are invalid.
-        // e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
-        // You can also use the `req` object to obtain additional parameters
-        // (i.e., the request IP address)
-        const res = await fetch("/your/endpoint", {
-          method: "POST",
-          body: JSON.stringify(credentials),
-          headers: { "Content-Type": "application/json" },
-        });
-        const user = await res.json();
-
-        // If no error and we have user data, return it
-        if (res.ok && user) {
+      name: "credentials",
+      credentials: {},
+      async authorize(credentials) {
+        const { email, password } = credentials as {
+          email: string;
+          password: string;
+        };
+        try {
+          await connectToDB();
+          const user = await User.findOne({ email });
+          if (!user) {
+            return null;
+          }
+          const passwordsMatch = await bycrptjs.compare(
+            password,
+            user.password
+          );
+          if (!passwordsMatch) {
+            return null;
+          }
           return user;
+        } catch (error) {
+          console.log("Error:", error);
         }
-        // Return null if user data could not be retrieved
-        return null;
       },
     }),
   ],
+
+  session: {
+    strategy: "jwt",
+  },
+
+  callbacks: {
+    async signIn({ user, account }: { user: any; account: any }) {
+      if (account.provider === "google") {
+        try {
+          const { name, email } = user;
+          await connectToDB();
+          const ifUserExists = await User.findOne({ email });
+          if (ifUserExists) {
+            return user;
+          }
+          const newUser = new User({
+            name: name,
+            email: email,
+          });
+          const res = await newUser.save();
+          if (res.status === 200 || res.status === 201) {
+            console.log(res);
+            return user;
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
+      return user;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+
+    async session({ session, token }: { session: any; token: any }) {
+      if (session.user) {
+        session.user.email = token.email;
+        session.user.name = token.name;
+      }
+      console.log(session);
+      return session;
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET!,
+  pages: {
+    signIn: "/login-page",
+    newUser: "/signup-page",
+  },
 };

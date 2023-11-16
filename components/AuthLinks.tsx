@@ -9,7 +9,7 @@ const AuthLinks = () => {
         </li>
 
         <li className="px-4 py-1.5 border-2 border-blue-600 rounded-full hover:bg-blue-600">
-          <Link href="/signin-page">Register</Link>
+          <Link href="/signup-page">Register</Link>
         </li>
       </ul>
     </div>

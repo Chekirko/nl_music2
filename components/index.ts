@@ -14,6 +14,7 @@ import NavDropdownMenu from "./NavDropdownMenu";
 import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
+import Providers from "./Providers";
 
 export {
   Hero,
@@ -32,4 +33,5 @@ export {
   TagCard,
   NavLinks,
   AuthLinks,
+  Providers,
 };
