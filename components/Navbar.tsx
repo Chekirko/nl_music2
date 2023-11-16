@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useState } from "react";
 import { AuthLinks, NavDropdownMenu, NavLinks } from ".";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
+import { useSession } from "next-auth/react";
 
 const Navbar = () => {
+  const session = useSession();
   const [menuIcon, setMenuIcon] = useState(false);
 
   const handleSmallerScreensNavigation = () => {
@@ -37,9 +39,13 @@ const Navbar = () => {
           <NavLinks />
         </div>
 
-        <div className="hidden lg:block">
-          <AuthLinks />
-        </div>
+        {session?.data ? (
+          <div>Hello</div>
+        ) : (
+          <div className="hidden lg:block">
+            <AuthLinks />
+          </div>
+        )}
 
         <div
           onClick={handleSmallerScreensNavigation}
