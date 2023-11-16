@@ -88,3 +88,16 @@ export interface AgreeModalProps {
   submitting: boolean;
   handleSubmit: (e: FormEvent) => void;
 }
+
+interface FooterLink {
+  title: string;
+  links: Array<{ title: string; url: string }>;
+}
+
+export interface FooterLinkSection {
+  footerLinks: Array<FooterLink>;
+}
+
+export interface NavLinksProps {
+  handleClick?: () => void;
+}

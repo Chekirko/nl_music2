@@ -136,17 +136,11 @@ const Form = ({
         <div className="flex-end mx-3 mb-5 gap-4">
           <Link
             href="/"
-            className="text-gray-500 hover:text-white text-sm hover:bg-blue-800 px-5 py-1.5 rounded-full"
+            className="text-gray-500 hover:text-white text-sm font-medium hover:bg-blue-800 px-5 py-1.5 rounded-full"
           >
             Cancel
           </Link>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
-          >
-            {submitting ? `${type}...` : type}
-          </button>
+
           <AgreeModal
             type={type}
             question={question}

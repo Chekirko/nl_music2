@@ -1,13 +1,26 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { SongLink } from ".";
-import { NavDropdownMenu } from ".";
+import { useState } from "react";
+import { AuthLinks, NavDropdownMenu, NavLinks } from ".";
+import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 
 const Navbar = () => {
+  const [menuIcon, setMenuIcon] = useState(false);
+
+  const handleSmallerScreensNavigation = () => {
+    setMenuIcon(!menuIcon);
+  };
+
   return (
     <header className="w-full bg-gray-900">
       <nav className="max-w-[1440px] mx-auto flex justify-between items-center padding-x py-4">
-        <Link href="/" className="flex justify-center items-center">
+        <Link
+          href="/"
+          className="flex justify-center items-center"
+          onClick={handleSmallerScreensNavigation}
+        >
           <Image
             src="/logoi.svg"
             alt="New Life logo"
@@ -15,32 +28,41 @@ const Navbar = () => {
             height={10}
             className="object-contain"
           />
+          <span className="uppercase font-bold text-3xl text-blue-800">
+            Nl_Songs
+          </span>
         </Link>
 
-        {/* <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded">
-          <SongLink route="/create-song" type="Додати пісню"></SongLink>
+        <div className="hidden lg:block">
+          <NavLinks />
         </div>
 
-        <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded">
-          <SongLink route="/update-song" type="Змінити пісню"></SongLink>
-        </div> */}
+        <div className="hidden lg:block">
+          <AuthLinks />
+        </div>
 
-        <div>
-          <ul className="flex justify-end items-center gap-10 text-white">
-            <li className="hover:text-blue-600">
-              <Link href="/">Головна</Link>
-            </li>
-            <li>
-              <NavDropdownMenu />
-            </li>
+        <div
+          onClick={handleSmallerScreensNavigation}
+          className="flex lg:hidden"
+        >
+          {menuIcon ? (
+            <AiOutlineClose size={48} className="text-blue-600" />
+          ) : (
+            <AiOutlineMenu size={48} className="text-blue-600" />
+          )}
+        </div>
 
-            {/* <li className="hover:text-blue-600">
-              <Link href="/songs">Пісні</Link>
-            </li> */}
-            <li className="hover:text-blue-600">
-              <Link href="/about">Про нас</Link>
-            </li>
-          </ul>
+        <div
+          className={
+            menuIcon
+              ? "lg:hidden absolute top-[90px] bottom-0 left-0 flex justify-center items-center w-full h-screen bg-gray-900 text-white ease-in duration-300 text-center z-50"
+              : "lg:hidden absolute top-[100px] right-0 left-[-100%] flex justify-center items-center w-full h-screen bg-slate text-white ease-in duration-300"
+          }
+        >
+          <div className="w-full flex flex-col">
+            <NavLinks handleClick={handleSmallerScreensNavigation} />
+            <AuthLinks />
+          </div>
         </div>
       </nav>
     </header>

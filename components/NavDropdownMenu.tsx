@@ -4,16 +4,17 @@ import { Menu, Transition } from "@headlessui/react";
 import { Fragment, JSX, SVGProps, useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
+import { NavLinksProps } from "@/types";
 
-export default function NavDropdownMenu() {
+export default function NavDropdownMenu({ handleClick }: NavLinksProps) {
   return (
     <div className="top-16 z-30 w-full text-right">
-      <Menu as="div" className="relative inline-block text-left">
+      <Menu as="div" className="relative group inline-block text-left">
         <div>
-          <Menu.Button className="inline-flex w-full justify-center rounded-md bg-transparent  hover:text-blue-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
+          <Menu.Button className="inline-flex w-full justify-center rounded-md bg-transparent  group-hover:text-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
             Пісні
             <ChevronDownIcon
-              className="ml-2 -mr-1 h-5 w-5 text-violet-200 hover:text-blue-600"
+              className="ml-2 -mr-1 h-5 w-5 text-violet-200 group-hover:text-blue-600"
               aria-hidden="true"
             />
           </Menu.Button>
@@ -101,6 +102,7 @@ export default function NavDropdownMenu() {
                 {({ active }) => (
                   <Link
                     href="/songs"
+                    onClick={handleClick}
                     className={`${
                       active ? "bg-blue-400 text-white" : "text-gray-900"
                     } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
@@ -124,6 +126,7 @@ export default function NavDropdownMenu() {
                 {({ active }) => (
                   <Link
                     href="/events"
+                    onClick={handleClick}
                     className={`${
                       active ? "bg-blue-400 text-white" : "text-gray-900"
                     } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
@@ -147,6 +150,7 @@ export default function NavDropdownMenu() {
                 {({ active }) => (
                   <Link
                     href="/songs/tags"
+                    onClick={handleClick}
                     className={`${
                       active ? "bg-blue-400 text-white" : "text-gray-900"
                     } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
