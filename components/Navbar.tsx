@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { AuthLinks, NavDropdownMenu, NavLinks } from ".";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const Navbar = () => {
   const session = useSession();
@@ -40,7 +40,17 @@ const Navbar = () => {
         </div>
 
         {session?.data ? (
-          <div>Hello</div>
+          <div className="flex gap-4">
+            <div className="bg-white text-blue-800 text-xl font-bold py-1.5 px-4 rounded-full">
+              Hello {session.data.user?.name}
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="bg-white text-blue-800 text-xl font-bold py-1.5 px-4 rounded-full"
+            >
+              Logout
+            </button>
+          </div>
         ) : (
           <div className="hidden lg:block">
             <AuthLinks />
