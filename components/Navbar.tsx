@@ -77,7 +77,7 @@ const Navbar = () => {
         >
           <div className="w-full flex flex-col">
             <NavLinks handleClick={handleSmallerScreensNavigation} />
-            <AuthLinks />
+            <AuthLinks handleClick={handleSmallerScreensNavigation} />
           </div>
         </div>
       </nav>

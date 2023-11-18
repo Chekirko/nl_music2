@@ -1,4 +1,4 @@
-export default function MinistryLayout({
+export default function SongsLayout({
   children,
 }: {
   children: React.ReactNode;
