@@ -49,6 +49,7 @@ module.exports = {
         "layout1-bg": "url('/about.JPG')",
         "parallax-bg": "url('/church.JPG')",
         "guitar-bg": "url('/guitar.png')",
+        "events-bg": "url('/events.JPG')",
       },
     },
   },
