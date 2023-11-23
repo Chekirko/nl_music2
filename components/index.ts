@@ -15,6 +15,8 @@ import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
+import SearchTitleForEvent from "./SearchTitleForEvent";
+import EventFormBlock from "./EventFormBlock";
 
 export {
   Hero,
@@ -34,4 +36,6 @@ export {
   NavLinks,
   AuthLinks,
   Providers,
+  SearchTitleForEvent,
+  EventFormBlock,
 };

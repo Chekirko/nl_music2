@@ -19,7 +19,6 @@ const SongsFeed = () => {
       });
       const data = await response.json();
       setSongs(data);
-      console.log(data);
     };
 
     fetchSongs();

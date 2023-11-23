@@ -77,7 +77,6 @@ export const authConfig: AuthOptions = {
         session.user.email = token.email;
         session.user.name = token.name;
       }
-      console.log(session);
       return session;
     },
   },

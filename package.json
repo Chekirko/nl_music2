@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
-    "@heroicons/react": "^2.0.18",
-    "bcryptjs": "^2.4.3",
+    "@heroicons/react": "^2.0.18",   
+    "bcryptjs": "^2.4.3",    
     "lucide-react": "^0.292.0",
     "mongoose": "^8.0.0",
     "next": "latest",
@@ -19,7 +19,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-icons": "^4.12.0",
-    "sharp": "^0.32.6"
+    "sharp": "^0.32.6"    
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

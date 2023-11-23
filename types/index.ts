@@ -31,6 +31,34 @@ export interface SongBlockProps {
   index: number;
 }
 
+export interface OurEvent {
+  _id: number;
+  title: string;
+  songs: Array<EventSong>;
+}
+
+export interface EventSong {
+  song: string;
+  comment: string;
+  ind: string;
+  title: string;
+}
+
+export interface EventFormBlockProps {
+  songs: Array<GettedSong>;
+  event: OurEvent;
+  setEvent: (event: OurEvent) => void;
+  song: EventSong;
+  index: number;
+}
+
+export interface SearchTitleForEventProps {
+  songs: Array<GettedSong>;
+  setEvent: (event: OurEvent) => void;
+  index: number;
+  event: OurEvent;
+}
+
 export interface Song {
   title: string;
   comment: string;

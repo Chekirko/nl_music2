@@ -31,6 +31,31 @@ export const alphabet = [
   "я",
 ];
 
+export const defaultEvent = {
+  _id: 1,
+  title: "",
+  songs: [
+    {
+      song: "1",
+      comment: "",
+      ind: "1",
+      title: "",
+    },
+    {
+      song: "2",
+      comment: "",
+      ind: "2",
+      title: "",
+    },
+    {
+      song: "3",
+      comment: "",
+      ind: "3",
+      title: "",
+    },
+  ],
+};
+
 export const defaultSong = {
   _id: 1,
   title: "",

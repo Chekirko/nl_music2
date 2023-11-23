@@ -7,7 +7,6 @@ export const POST = async (req: Request, res: Response) => {
 
   try {
     await connectToDB();
-    console.log(blocks);
     const newSong = new Song({
       title,
       comment,
