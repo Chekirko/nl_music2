@@ -1,5 +1,3 @@
-"use client";
-import { SongLink } from "@/components";
 import SongsFeed from "@/components/SongsFeed";
 
 const SongsPage = () => {

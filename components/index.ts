@@ -17,8 +17,11 @@ import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
 import SearchTitleForEvent from "./SearchTitleForEvent";
 import EventFormBlock from "./EventFormBlock";
+import AgreeModal from "./AgreeModal";
+import { YearAccordion } from "./YearAccordion";
 
 export {
+  AgreeModal,
   Hero,
   Navbar,
   Footer,
@@ -38,4 +41,5 @@ export {
   Providers,
   SearchTitleForEvent,
   EventFormBlock,
+  YearAccordion,
 };

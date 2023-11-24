@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { OurEvent } from "@/types";
+import { YearAccordion } from "@/components";
 
 const EventsPage = () => {
   const [events, setEvents] = useState<OurEvent[]>([]);
@@ -19,21 +20,20 @@ const EventsPage = () => {
     fetchSongs();
   }, []);
 
-  const oneEvent = events[0];
   return (
     <div className="padding-x mt-16">
-      <Link
-        href="/events/create-new"
-        className=" py-3 px-8 w-full bg-primary font-bold text-lg hover:bg-primary-dark text-white rounded-full"
-      >
-        Новий список
-      </Link>
-
-      {oneEvent?.songs.map((song) => (
-        <Link key={song.title} href={`/songs/${song.song}`}>
-          {song.title}
+      <div className="flex justify-end">
+        <Link
+          href="/events/create-new"
+          className="py-3 px-8 bg-primary font-bold text-lg hover:bg-primary-dark text-white rounded-full"
+        >
+          Новий список
         </Link>
-      ))}
+      </div>
+
+      <div className="mt-16 flex justify-around">
+        <YearAccordion events={events} />
+      </div>
     </div>
   );
 };

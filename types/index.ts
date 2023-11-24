@@ -35,6 +35,7 @@ export interface OurEvent {
   _id: number;
   title: string;
   songs: Array<EventSong>;
+  date?: Date;
 }
 
 export interface EventSong {
@@ -128,4 +129,8 @@ export interface FooterLinkSection {
 
 export interface NavLinksProps {
   handleClick?: () => void;
+}
+
+export interface YearAccordionProps {
+  events: Array<OurEvent>;
 }

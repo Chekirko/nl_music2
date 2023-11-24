@@ -22,9 +22,14 @@ const SongInEventSchema = new Schema({
 const EventSchema = new Schema({
   title: {
     type: String,
-    required: [false, "Title is required"],
+    required: [true, "Title is required"],
   },
   songs: [SongInEventSchema],
+  date: {
+    type: Date,
+    // default: Date.now(),
+    required: [true, "Date is required"],
+  },
 });
 
 const Event = models.Event || model("Event", EventSchema);
