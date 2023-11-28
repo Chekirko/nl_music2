@@ -14,6 +14,7 @@ const SearchTitleForEvent = ({
   songs,
   setEvent,
   index,
+  existedSong,
 }: SearchTitleForEventProps) => {
   const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
   const [query, setQuery] = useState("");

@@ -15,10 +15,14 @@ import {
 
 export function DatePickerDemo({
   onDateChange,
+  existedDate,
 }: {
   onDateChange: (selectedDate: Date | undefined) => void;
+  existedDate?: Date;
 }) {
-  const [date, setDate] = React.useState<Date | undefined>(undefined);
+  const [date, setDate] = React.useState<Date | undefined>(
+    existedDate ?? undefined
+  );
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     console.log(selectedDate);

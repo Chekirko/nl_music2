@@ -13,17 +13,13 @@ const EventFormBlock = ({
       <span className="font-satoshi font-semibold text-base text-gray-700">
         Пісня {index}
       </span>
-      {/* <input
-        value={song._id}
-        placeholder="Назва частини пісні"
-        className="form_input"
-        readOnly
-      /> */}
+      {song && song.title !== "" && <div>Зараз в списку: {song.title}</div>}
       <SearchTitleForEvent
         songs={songs}
         index={index}
         setEvent={setEvent}
         event={event}
+        existedSong={song}
       />
     </label>
   );

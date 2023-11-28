@@ -26,6 +26,15 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
   return (
     <section className="padding-x py-5">
       <h1 className="head_text  text-primary-600">{event?.title}</h1>
+      <div className="flex mt-8">
+        <Link
+          href={`/events/update-event?id=${params.eventId}`}
+          className="py-3 px-5 bg-primary font-medium text-sm hover:bg-primary-dark text-white rounded-full"
+        >
+          Редагувати список
+        </Link>
+      </div>
+
       <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
       <div className="mt-5 font-bold text-lg text-primary-800">
         <p>Дата: </p>

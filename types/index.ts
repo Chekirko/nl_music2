@@ -58,6 +58,7 @@ export interface SearchTitleForEventProps {
   setEvent: (event: OurEvent) => void;
   index: number;
   event: OurEvent;
+  existedSong?: EventSong;
 }
 
 export interface Song {
