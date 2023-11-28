@@ -1,13 +1,9 @@
 "use client";
 
-import { GettedSong, SearchTitleForEventProps } from "@/types";
+import { EventSong, GettedSong, SearchTitleForEventProps } from "@/types";
 import { Combobox, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
-import {
-  CheckIcon,
-  ChevronUpDownIcon,
-  ArrowRightIcon,
-} from "@heroicons/react/20/solid";
+import { Fragment, useEffect, useState } from "react";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 const SearchTitleForEvent = ({
   event,
@@ -16,8 +12,15 @@ const SearchTitleForEvent = ({
   index,
   existedSong,
 }: SearchTitleForEventProps) => {
-  const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
+  const [selectedSong, setSelectedSong] = useState<
+    GettedSong | null | EventSong
+  >(null);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    const existSong = event.songs.find((song, ind) => ind === index);
+    setSelectedSong(existSong as EventSong);
+  }, []);
 
   const handleSongSelect = (song: GettedSong) => {
     setSelectedSong(song);
@@ -29,7 +32,24 @@ const SearchTitleForEvent = ({
         title: song.title,
       };
       const updatedEvent = { ...event, songs: updatedEventSongs };
-      console.log(updatedEvent);
+      setEvent(updatedEvent);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setQuery(value);
+
+    // If input is empty, set selectedSong to null
+    if (value === "") {
+      setSelectedSong(null);
+      const updatedEventSongs = [...event.songs];
+      updatedEventSongs[index] = {
+        ...updatedEventSongs[index],
+        song: `${index + 1}`,
+        title: "",
+      };
+      const updatedEvent = { ...event, songs: updatedEventSongs };
       setEvent(updatedEvent);
     }
   };
@@ -48,7 +68,7 @@ const SearchTitleForEvent = ({
             <Combobox.Input
               className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-500 font-bold focus:ring-0 focus:border-2 focus:border-gray-500"
               displayValue={(song: GettedSong) => song?.title}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={handleInputChange}
             />
             <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
               <ChevronUpDownIcon

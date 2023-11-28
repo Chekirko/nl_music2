@@ -8,17 +8,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
-useRouter;
-
 const UpdateEventPage = () => {
   const router = useRouter();
 
   const [submitting, setSubmitting] = useState(false);
   const [songs, setSongs] = useState<GettedSong[]>([]);
   const [event, setEvent] = useState<OurEvent>(defaultEvent);
-
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id") || "";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -57,8 +52,6 @@ const UpdateEventPage = () => {
 
   const handleDateChange = (selectedDate: Date | undefined) => {
     const updatedEvent = { ...event, date: selectedDate || undefined };
-    console.log(selectedDate);
-    console.log(updatedEvent);
     setEvent(updatedEvent);
   };
 
@@ -71,8 +64,6 @@ const UpdateEventPage = () => {
     );
 
     const utcDate = event.date ? new Date(event.date).toISOString() : undefined;
-    console.log(event.date);
-    console.log(utcDate);
     try {
       const response = await fetch("/api/events/update", {
         method: "PUT",
@@ -85,7 +76,7 @@ const UpdateEventPage = () => {
       });
 
       if (response.ok) {
-        router.push(`/events/${id}`);
+        router.push(`/events`);
       }
     } catch (error) {
       console.log(error);
@@ -127,7 +118,7 @@ const UpdateEventPage = () => {
 
         {event.songs.map((song, index) => (
           <EventFormBlock
-            key={index}
+            key={song.song}
             songs={songs}
             event={event}
             setEvent={setEvent}
@@ -138,7 +129,7 @@ const UpdateEventPage = () => {
 
         <div className="flex-end mx-3 mb-5 gap-4">
           <Link
-            href={`/events/${id}`}
+            href={`/events`}
             className="text-gray-500 hover:text-white text-sm font-medium hover:bg-blue-800 px-5 py-1.5 rounded-full"
           >
             Cancel

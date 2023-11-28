@@ -13,7 +13,7 @@ const EventFormBlock = ({
       <span className="font-satoshi font-semibold text-base text-gray-700">
         Пісня {index}
       </span>
-      {song && song.title !== "" && <div>Зараз в списку: {song.title}</div>}
+      {/* {song && song.title !== "" && <div>Зараз в списку: {song.title}</div>} */}
       <SearchTitleForEvent
         songs={songs}
         index={index}
