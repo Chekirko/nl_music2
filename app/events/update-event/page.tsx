@@ -59,9 +59,9 @@ const UpdateEventPage = () => {
     e.preventDefault();
     setSubmitting(true);
     const filteredEventSongs = event.songs.filter((song) => song.title !== "");
-    const sortedEventSongs = filteredEventSongs.sort(
-      (a, b) => Number(a.ind) - Number(b.ind)
-    );
+    // const sortedEventSongs = filteredEventSongs.sort(
+    //   (a, b) => Number(a.ind) - Number(b.ind)
+    // );
 
     const utcDate = event.date ? new Date(event.date).toISOString() : undefined;
     try {
@@ -70,7 +70,7 @@ const UpdateEventPage = () => {
         body: JSON.stringify({
           _id: event._id,
           title: event.title,
-          songs: sortedEventSongs,
+          songs: filteredEventSongs,
           date: utcDate,
         }),
       });
