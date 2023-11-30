@@ -4,6 +4,7 @@ import { AgreeModal, EventFormBlock } from "@/components";
 import { DatePickerDemo } from "@/components/ui/datePickerDemo";
 import { defaultEvent } from "@/constants";
 import { EventSong, GettedSong, OurEvent } from "@/types";
+import { revalidatePath } from 'next/cache';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -82,6 +83,7 @@ const UpdateEventPage = () => {
       console.log(error);
     } finally {
       setSubmitting(false);
+      revalidatePath('/events')
     }
   };
 

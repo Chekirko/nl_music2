@@ -19,6 +19,8 @@ import SearchTitleForEvent from "./SearchTitleForEvent";
 import EventFormBlock from "./EventFormBlock";
 import AgreeModal from "./AgreeModal";
 import { YearAccordion } from "./YearAccordion";
+import EventsPageComponent from "./EventsPageComponent";
+import CreateEventPageComponent from "./CreateEventPageComponent";
 
 export {
   AgreeModal,
@@ -42,4 +44,6 @@ export {
   SearchTitleForEvent,
   EventFormBlock,
   YearAccordion,
+  EventsPageComponent,
+  CreateEventPageComponent,
 };
