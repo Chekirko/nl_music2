@@ -5,6 +5,7 @@ export const PUT = async (req: Request, res: Response) => {
   const {
     _id,
     title,
+    rythm,
     tags,
     comment,
     key,
@@ -20,7 +21,18 @@ export const PUT = async (req: Request, res: Response) => {
 
     const updatedSong = await Song.findByIdAndUpdate(
       _id,
-      { title, comment, tags, key, mode, origin, video, ourVideo, blocks },
+      {
+        title,
+        comment,
+        rythm,
+        tags,
+        key,
+        mode,
+        origin,
+        video,
+        ourVideo,
+        blocks,
+      },
       { new: true, runValidators: true }
     );
 

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { EventsPageComponent } from "@/components";
 
+export const dynamic = "force-dynamic";
+
 const EventsPage = () => {
   return (
     <div className="padding-x mt-16">

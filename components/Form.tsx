@@ -65,6 +65,19 @@ const Form = ({
 
         <label>
           <span className="font-satoshi font-semibold text-base text-gray-700">
+            Ритм
+          </span>
+          <input
+            value={song?.rythm || ""}
+            onChange={(e) => setSong({ ...song, rythm: e.target.value })}
+            placeholder="Який ритм?"
+            required
+            className="form_input"
+          />
+        </label>
+
+        <label>
+          <span className="font-satoshi font-semibold text-base text-gray-700">
             Модуляція
           </span>
           <input

@@ -28,8 +28,7 @@ const CreateEventPageComponent = () => {
 
   const handleDateChange = (selectedDate: Date | undefined) => {
     const updatedEvent = { ...event, date: selectedDate || undefined };
-    console.log(selectedDate);
-    console.log(updatedEvent);
+
     setEvent(updatedEvent);
   };
 
@@ -53,7 +52,6 @@ const CreateEventPageComponent = () => {
       });
 
       if (response.ok) {
-        router.refresh();
         router.push("/events");
       }
     } catch (error) {

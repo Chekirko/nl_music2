@@ -5,6 +5,10 @@ const SongSchema = new Schema({
     type: String,
     required: [true, "Title is required"],
   },
+  rythm: {
+    type: String,
+    required: [false, "rythm is not required"],
+  },
   comment: {
     type: String,
     required: [false, "Comment is not required"],

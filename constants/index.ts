@@ -168,6 +168,7 @@ export const defaultEvent = {
 export const defaultSong = {
   _id: 1,
   title: "",
+  rythm: "",
   tags: "",
   comment: "",
   key: "",

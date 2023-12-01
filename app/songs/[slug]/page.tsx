@@ -40,6 +40,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       <h1 className="head_text  text-blue-600">{song?.title}</h1>
       <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
       <p className="mt-5">Тональність: {song?.key}</p>
+      {song?.rythm && song.rythm !== "" && <p>Ритм: {song.rythm}</p>}
       {song?.comment && song.comment !== "" && <p>Коментар: {song.comment}</p>}
       {song?.mode && song.mode !== "" && <p>Модуляція: {song.mode}</p>}
       {song?.origin && song.origin !== "" && (

@@ -63,6 +63,7 @@ export interface SearchTitleForEventProps {
 
 export interface Song {
   title: string;
+  rythm: string;
   comment: string;
   key: string;
   mode: string;
@@ -82,6 +83,7 @@ export interface Block {
 export interface GettedSong {
   _id: number;
   title: string;
+  rythm: string;
   tags: string;
   comment: string;
   key: string;

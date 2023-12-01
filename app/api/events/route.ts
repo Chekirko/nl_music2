@@ -1,6 +1,8 @@
 import Event from "@/models/event";
 import { connectToDB } from "@/utils/database";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (request: Request) => {
   try {
     await connectToDB();
