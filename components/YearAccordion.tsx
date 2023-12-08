@@ -27,7 +27,7 @@ export function YearAccordion({ events }: YearAccordionProps) {
   });
 
   return (
-    <Accordion type="single" collapsible className="w-1/2">
+    <Accordion type="single" collapsible className="w-full lg:w-3/4">
       {Object.keys(eventsByYear)
         .reverse()
         .map((year) => (
@@ -52,13 +52,13 @@ export function YearAccordion({ events }: YearAccordionProps) {
                       <AccordionTrigger className="text-lg font-bold text-white">
                         {getMonthName(parseInt(month, 10) - 1)}
                       </AccordionTrigger>
-                      <AccordionContent className="mt-8">
+                      <AccordionContent className="mt-4 sm:mt-8">
                         {eventsByYear[Number(year)][Number(month)].map(
                           (event) => (
                             <div key={event._id} className="mb-4">
                               <Link
                                 href={`/events/${event._id}`}
-                                className="bg-gray-400 text-white hover:bg-gray-500 text-xl font-bold py-1.5 px-4 rounded-full"
+                                className="bg-gray-400 text-white hover:bg-gray-500 sm:text-xl text-sm font-bold py-1.5 sm:px-4 px-2 rounded-full"
                               >
                                 {event.date
                                   ? new Date(event.date).toLocaleDateString()
