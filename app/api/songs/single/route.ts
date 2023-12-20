@@ -1,6 +1,8 @@
 import Song from "@/models/song";
 import { connectToDB } from "@/utils/database";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (request: Request) => {
   try {
     const url = new URL(request.url);
@@ -16,7 +18,7 @@ export const GET = async (request: Request) => {
     if (!song) {
       return new Response("Song not found", { status: 404 });
     }
-    
+
     return new Response(JSON.stringify(song), { status: 200 });
   } catch (error) {
     return new Response("Failed to fetch all songs", { status: 500 });

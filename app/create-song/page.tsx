@@ -33,7 +33,7 @@ const CreateSong = () => {
       });
 
       if (response.ok) {
-        router.push("/");
+        router.push("/songs");
       }
     } catch (error) {
       console.log(error);
