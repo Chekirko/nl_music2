@@ -38,6 +38,7 @@
     @apply bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent;
 }
 
+
 /* START: Hero styles */
 .hero {
     @apply flex xl:flex-row flex-col gap-5 relative z-0 max-w-[1440px] mx-auto;

@@ -1,6 +1,8 @@
 import Song from "@/models/song";
 import { connectToDB } from "@/utils/database";
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (request: Request) => {
   try {
     await connectToDB();
