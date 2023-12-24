@@ -2,7 +2,10 @@
 
 import { OurEvent } from "@/types";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { AgreeModal } from "@/components";
+import { useRouter } from "next/navigation";
 
 interface SingleEventPageProps {
   params: {
@@ -12,6 +15,10 @@ interface SingleEventPageProps {
 
 const SingleEventPage = ({ params }: SingleEventPageProps) => {
   const [event, setEvent] = useState<OurEvent>();
+  const [submitting, setSubmitting] = useState(false);
+  const session = useSession();
+  const router = useRouter();
+
   useEffect(() => {
     const fetchEvent = async () => {
       const response = await fetch(`/api/events/single?id=${params.eventId}`, {
@@ -23,16 +30,48 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
 
     fetchEvent();
   }, []);
+
+  const deleteEvent = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/events/delete", {
+        method: "DELETE",
+        body: JSON.stringify({
+          _id: params.eventId,
+        }),
+      });
+
+      if (response.ok) {
+        router.push(`/events`);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <section className="padding-x py-5">
       <h1 className="head_text  text-primary-600">{event?.title}</h1>
-      <div className="flex mt-8">
+      <div className="flex flex-col items-start gap-4 mt-8">
         <Link
           href={`/events/update-event?id=${params.eventId}`}
-          className="py-3 px-5 bg-primary font-medium text-sm hover:bg-primary-dark text-white rounded-full"
+          className="rounded-full  bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
         >
           Редагувати список
         </Link>
+        {session.data?.user.role === "admin" && (
+          <AgreeModal
+            type={"Видалити список"}
+            question={"Впевнений?"}
+            descr={"Ти дійсно хочеш видалити такий список пісень?"}
+            submitting={submitting}
+            handleSubmit={deleteEvent}
+          />
+        )}
       </div>
 
       <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>

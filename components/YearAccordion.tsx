@@ -55,7 +55,10 @@ export function YearAccordion({ events }: YearAccordionProps) {
                       <AccordionContent className="mt-4 sm:mt-8">
                         {eventsByYear[Number(year)][Number(month)].map(
                           (event) => (
-                            <div key={event._id} className="mb-4">
+                            <div
+                              key={event._id}
+                              className="mb-4 flex items-center gap-4"
+                            >
                               <Link
                                 href={`/events/${event._id}`}
                                 className="bg-gray-400 text-white hover:bg-gray-500 sm:text-xl text-sm font-bold py-1.5 sm:px-4 px-2 rounded-full"
