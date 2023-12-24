@@ -13,6 +13,7 @@ const Navbar = () => {
 
   const handleSmallerScreensNavigation = () => {
     setMenuIcon(!menuIcon);
+    console.log("click");
   };
 
   return (
@@ -40,15 +41,15 @@ const Navbar = () => {
         </div>
 
         {session?.data ? (
-          <div className="flex gap-4">
-            <div className="bg-white text-blue-800 text-xl font-bold py-1.5 px-4 rounded-full">
-              Hello {session.data.user?.name}
+          <div className="hidden lg:flex gap-4 text-white font-bold">
+            <div className="px-4 py-1.5 border-2 border-blue-600 rounded-full">
+              Привіт, {session.data.user?.name}
             </div>
             <button
               onClick={() => signOut()}
-              className="bg-white text-blue-800 text-xl font-bold py-1.5 px-4 rounded-full"
+              className="px-4 py-1.5 border-2 border-blue-800  bg-blue-600 rounded-full hover:bg-blue-800"
             >
-              Logout
+              Вийти
             </button>
           </div>
         ) : (
@@ -77,7 +78,25 @@ const Navbar = () => {
         >
           <div className="w-full flex flex-col">
             <NavLinks handleClick={handleSmallerScreensNavigation} />
-            <AuthLinks handleClick={handleSmallerScreensNavigation} />
+            {/* <AuthLinks handleClick={handleSmallerScreensNavigation} /> */}
+
+            {session?.data ? (
+              <div className="flex flex-col mt-16 lg:mt-0 justify-end items-center gap-6 text-white font-bold">
+                <div className="px-4 py-1.5 border-2 border-blue-600 rounded-full">
+                  Привіт, {session.data.user?.name}
+                </div>
+                <button
+                  onClick={() => signOut()}
+                  className="px-4 py-1.5 border-2 border-blue-800  bg-blue-600 rounded-full hover:bg-blue-800"
+                >
+                  Вийти
+                </button>
+              </div>
+            ) : (
+              <div>
+                <AuthLinks handleClick={handleSmallerScreensNavigation} />
+              </div>
+            )}
           </div>
         </div>
       </nav>

@@ -4,6 +4,28 @@ import type { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bycrptjs from "bcryptjs";
 
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      image: string;
+      role: string; // додайте поле для ролі користувача
+    };
+  }
+}
+
+declare module "next-auth" {
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+    image: string;
+    role: string;
+  }
+}
+
 export const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -37,6 +59,7 @@ export const authConfig: AuthOptions = {
 
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60,
   },
 
   callbacks: {
@@ -68,6 +91,7 @@ export const authConfig: AuthOptions = {
       if (user) {
         token.email = user.email;
         token.name = user.name;
+        token.role = user.role;
       }
       return token;
     },
@@ -76,6 +100,7 @@ export const authConfig: AuthOptions = {
       if (session.user) {
         session.user.email = token.email;
         session.user.name = token.name;
+        session.user.role = token.role;
       }
       return session;
     },

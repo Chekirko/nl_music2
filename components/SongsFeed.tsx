@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import CardList from "./CardList";
 import { SearchBar, SongLink } from ".";
 import { useSession } from "next-auth/react";
+import { getToken } from "next-auth/jwt";
 
 const SongsFeed = () => {
   const session = useSession();

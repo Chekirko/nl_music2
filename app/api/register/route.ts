@@ -8,6 +8,11 @@ export async function POST(request: NextRequest) {
     await connectToDB();
     const { name, email, password } = await request.json();
 
+    let role = "user";
+    if (email && email === "victorche59@gmail.com") {
+      role = "admin";
+    }
+
     const user = await User.findOne({ email });
 
     if (user) {
@@ -24,6 +29,7 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password: hashedPassword,
+      role,
     });
 
     const savedUser = await newUser.save();
