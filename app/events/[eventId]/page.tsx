@@ -87,7 +87,7 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
               {/* <h2 className="mb-4">Пісня {index}</h2> */}
               <Link
                 href={`/songs/${song.song}`}
-                className="bg-gray-400 text-white hover:bg-gray-500 text-xl font-bold py-1.5 px-4 rounded-full"
+                className="bg-gray-400 text-white hover:bg-gray-500 text-base font-semibold sm:text-xl sm:font-bold py-1.5 px-4 rounded-full"
               >
                 {index}. {song.title}
               </Link>
