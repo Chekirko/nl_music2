@@ -94,6 +94,23 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
             </li>
           ))}
       </ul>
+
+      {event?.live ? (
+        <>
+          <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
+          <div className="mt-8">
+            Прослухати можна{" "}
+            <Link
+              href={event.live}
+              className="rounded-full ml-4  bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
+            >
+              ось тут
+            </Link>
+          </div>
+        </>
+      ) : (
+        ""
+      )}
     </section>
   );
 };

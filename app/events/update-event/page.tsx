@@ -4,7 +4,7 @@ import { AgreeModal, EventFormBlock } from "@/components";
 import { DatePickerDemo } from "@/components/ui/datePickerDemo";
 import { defaultEvent } from "@/constants";
 import { EventSong, GettedSong, OurEvent } from "@/types";
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -70,6 +70,7 @@ const UpdateEventPage = () => {
         method: "PUT",
         body: JSON.stringify({
           _id: event._id,
+          live: event.live,
           title: event.title,
           songs: filteredEventSongs,
           date: utcDate,
@@ -83,7 +84,6 @@ const UpdateEventPage = () => {
       console.log(error);
     } finally {
       setSubmitting(false);
-      revalidatePath('/events')
     }
   };
 
@@ -110,6 +110,18 @@ const UpdateEventPage = () => {
             placeholder="Наприклад: Неділя, ранкове або Молитовне"
             className="form_input"
             required
+          />
+        </label>
+
+        <label>
+          <span className="font-satoshi font-semibold text-base text-gray-700">
+            Посилання на служіння
+          </span>
+          <input
+            value={event.live}
+            onChange={(e) => setEvent({ ...event, live: e.target.value })}
+            placeholder="Встав посилання"
+            className="form_input"
           />
         </label>
 

@@ -34,6 +34,7 @@ export interface SongBlockProps {
 export interface OurEvent {
   _id: number;
   title: string;
+  live: string;
   songs: Array<EventSong>;
   date?: Date;
 }

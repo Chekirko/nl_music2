@@ -34,6 +34,7 @@ export const alphabet = [
 export const defaultEvent = {
   _id: 1,
   title: "",
+  live: "",
   date: new Date("2023-01-01"),
   songs: [
     {

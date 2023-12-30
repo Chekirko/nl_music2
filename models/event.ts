@@ -25,6 +25,10 @@ const EventSchema = new Schema({
     required: [true, "Title is required"],
   },
   songs: [SongInEventSchema],
+  live: {
+    type: String,
+    required: [false, "Live is not required"],
+  },
   date: {
     type: Date,
     // default: Date.now(),

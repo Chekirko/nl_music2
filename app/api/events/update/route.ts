@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { EventSong } from "@/types";
 
 export const PUT = async (req: Request, res: Response) => {
-  const { title, songs, date, _id } = await req.json();
+  const { title, songs, date, _id, live } = await req.json();
   const songIds = songs.map(
     (song: { song: string }) => new mongoose.Types.ObjectId(song.song)
   );
@@ -14,6 +14,7 @@ export const PUT = async (req: Request, res: Response) => {
       _id,
       {
         title,
+        live,
         date: new Date(date),
         songs: songIds.map(
           (songId: mongoose.Types.ObjectId, index: number) => ({
