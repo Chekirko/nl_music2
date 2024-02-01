@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import {
   MusicalNoteIcon,
   ChatBubbleBottomCenterTextIcon,
+  DocumentTextIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 
 interface SingleSongPageProps {
@@ -22,6 +24,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const [song, setSong] = useState<GettedSong>();
   const [viewText, setViewText] = useState(true);
   const [viewChords, setViewChords] = useState(true);
+  const [isCopied, setIsCopied] = useState(false);
 
   const [renderedBlocks, setRenderedBlocks] = useState<Block[] | undefined>();
 
@@ -81,16 +84,13 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     if (viewText && viewChords) {
       const updatedBlocks = renderedBlocks?.map((block) => {
         if (Number(block.version) === 1) {
-          // Версія 1: залишити тільки парні рядки
           const filteredLines = block.lines
             .split("\n")
             .filter((_, i) => i % 2 === 0);
           return { ...block, lines: filteredLines.join("\n") };
         } else if (Number(block.version) === 2) {
-          // Версія 2: залишити всі рядки
           return { ...block, lines: "" };
         } else if (Number(block.version) === 3) {
-          // Версія 3: видалити всі рядки
           return block;
         }
         return block;
@@ -105,6 +105,28 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     return;
   };
 
+  const handleCopyBlocks = () => {
+    // Отримайте текстовий вміст renderedBlocks
+    const blocksText = renderedBlocks
+      ?.map((block) => `${block.name}\n${block.lines}`)
+      .join("\n\n");
+
+    // Додайте заголовок пісні перед вмістом блоків
+    const finalText = `${song?.title}\n\n${blocksText}`;
+
+    // Використовуйте новий API для копіювання тексту у буфер обміну
+    navigator.clipboard.writeText(finalText).then(
+      () => {
+        setIsCopied(true);
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 3000);
+      },
+      (err) => {
+        console.error("Копіювання не вдалося", err);
+      }
+    );
+  };
   const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
 
   return (
@@ -122,6 +144,16 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           onClick={handleViewText}
         >
           <ChatBubbleBottomCenterTextIcon className="w-8 h-8 text-gray-500" />
+        </button>
+        <button
+          className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
+          onClick={handleCopyBlocks}
+        >
+          {isCopied ? (
+            <CheckIcon className="w-8 h-8 text-gray-500" />
+          ) : (
+            <DocumentTextIcon className="w-8 h-8 text-gray-500" />
+          )}
         </button>
       </div>
       <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
