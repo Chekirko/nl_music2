@@ -99,7 +99,7 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
         <>
           <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
           <div className="mt-8 font-semibold">
-            Переглянути наше виконання можна{" "}
+            Переглянути служіння:{" "}
             <Link
               href={event.live}
               className="rounded-full ml-4  bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
