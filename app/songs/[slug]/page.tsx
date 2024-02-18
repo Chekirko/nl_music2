@@ -274,7 +274,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           width="500"
           height="281"
           src={song?.video}
-          title="Тіло ломиме"
+          title={song?.title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         ></iframe>
         <style jsx>{`

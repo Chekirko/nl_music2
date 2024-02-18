@@ -29,6 +29,10 @@ const EventSchema = new Schema({
     type: String,
     required: [false, "Live is not required"],
   },
+  playList: {
+    type: String,
+    required: [false, "playList is not required"],
+  },
   date: {
     type: Date,
     // default: Date.now(),

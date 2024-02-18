@@ -71,6 +71,7 @@ const UpdateEventPage = () => {
         body: JSON.stringify({
           _id: event._id,
           live: event.live,
+          playList: event.playList,
           title: event.title,
           songs: filteredEventSongs,
           date: utcDate,
@@ -120,6 +121,18 @@ const UpdateEventPage = () => {
           <input
             value={event.live}
             onChange={(e) => setEvent({ ...event, live: e.target.value })}
+            placeholder="Встав посилання"
+            className="form_input"
+          />
+        </label>
+
+        <label>
+          <span className="font-satoshi font-semibold text-base text-gray-700">
+            Посилання на плейлист для прослуховування
+          </span>
+          <input
+            value={event.playList}
+            onChange={(e) => setEvent({ ...event, playList: e.target.value })}
             placeholder="Встав посилання"
             className="form_input"
           />

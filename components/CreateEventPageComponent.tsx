@@ -45,6 +45,7 @@ const CreateEventPageComponent = () => {
       const response = await fetch("/api/events/new", {
         method: "POST",
         body: JSON.stringify({
+          playList: event.playList,
           title: event.title,
           live: event.live,
           songs: sortedEventSongs,
@@ -81,11 +82,23 @@ const CreateEventPageComponent = () => {
 
       <label>
         <span className="font-satoshi font-semibold text-base text-gray-700">
-          Посилання на служіння
+          Посилання на наше служіння
         </span>
         <input
           value={event.live}
           onChange={(e) => setEvent({ ...event, live: e.target.value })}
+          placeholder="Встав посилання"
+          className="form_input"
+        />
+      </label>
+
+      <label>
+        <span className="font-satoshi font-semibold text-base text-gray-700">
+          Посилання на плейлист для прослуховування
+        </span>
+        <input
+          value={event.playList}
+          onChange={(e) => setEvent({ ...event, playList: e.target.value })}
           placeholder="Встав посилання"
           className="form_input"
         />

@@ -35,6 +35,7 @@ export interface OurEvent {
   _id: number;
   title: string;
   live: string;
+  playList?: string;
   songs: Array<EventSong>;
   date?: Date;
 }

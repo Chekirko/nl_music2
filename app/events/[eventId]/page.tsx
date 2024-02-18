@@ -98,14 +98,41 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
       {event?.live ? (
         <>
           <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
-          <div className="mt-8">
-            Прослухати можна{" "}
+          <div className="mt-8 font-semibold">
+            Переглянути наше виконання можна{" "}
             <Link
               href={event.live}
               className="rounded-full ml-4  bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
             >
               ось тут
             </Link>
+          </div>
+        </>
+      ) : (
+        ""
+      )}
+
+      {event?.playList ? (
+        <>
+          <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
+          <h2 className="mt-8 text-[27px] font-semibold orange_gradient">
+            Прослухати весь плейлист:{" "}
+          </h2>
+          <div className="mt-10">
+            <iframe
+              width="500"
+              height="281"
+              src={event?.playList}
+              title={event.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            ></iframe>
+            <style jsx>{`
+              @media (max-width: 600px) {
+                iframe {
+                  width: 100%; /* Ширина на мобільних пристроях */
+                }
+              }
+            `}</style>
           </div>
         </>
       ) : (

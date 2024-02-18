@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { footerLinks } from "@/constants";
 import { FooterLinkSection } from "@/types";
+import { format } from "date-fns";
 
 const Footer = () => {
   return (
@@ -16,7 +17,8 @@ const Footer = () => {
             className="object-contain"
           />
           <p className="text-base text-gray-700">
-            Нове життя 2023 <br />
+            Нове життя © 2023 - {format(new Date(), "yyyy")}
+            <br />
             Всі права захищено &copy;
           </p>
         </div>
