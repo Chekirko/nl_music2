@@ -5,7 +5,13 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AgreeModal } from "@/components";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  TelegramShareButton,
+  ViberShareButton,
+  TelegramIcon,
+  ViberIcon,
+} from "react-share";
 
 interface SingleEventPageProps {
   params: {
@@ -18,6 +24,7 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
   const [submitting, setSubmitting] = useState(false);
   const session = useSession();
   const router = useRouter();
+  const path = usePathname();
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -94,6 +101,20 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
             </li>
           ))}
       </ul>
+
+      <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
+
+      <div className="flex flex-start gap-5 mt-10">
+        <p className="font-semibold">Поділитись:</p>
+        <div className="flex gap-1">
+          <TelegramShareButton url={`https://nl-music2.vercel.app/${path}`}>
+            <TelegramIcon size={40} round={true}></TelegramIcon>
+          </TelegramShareButton>
+          <ViberShareButton url={`https://nl-music2.vercel.app/${path}`}>
+            <ViberIcon size={40} round={true}></ViberIcon>
+          </ViberShareButton>
+        </div>
+      </div>
 
       {event?.live ? (
         <>

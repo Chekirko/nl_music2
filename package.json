@@ -26,6 +26,7 @@
     "react-day-picker": "^8.9.1",
     "react-dom": "latest",
     "react-icons": "^4.12.0",
+    "react-share": "^5.1.0",
     "sharp": "^0.32.6",
     "tailwind-merge": "^2.0.0"
   },
