@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
+    "@hello-pangea/dnd": "^16.5.0",
     "@heroicons/react": "^2.0.18",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-popover": "^1.0.7",
@@ -27,6 +28,7 @@
     "react-dom": "latest",
     "react-icons": "^4.12.0",
     "react-share": "^5.1.0",
+    "react-toastify": "^10.0.4",
     "sharp": "^0.32.6",
     "tailwind-merge": "^2.0.0"
   },

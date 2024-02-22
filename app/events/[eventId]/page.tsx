@@ -6,6 +6,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AgreeModal } from "@/components";
 import { useRouter, usePathname } from "next/navigation";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   TelegramShareButton,
   ViberShareButton,
@@ -60,6 +63,47 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
     }
   };
 
+  const updateEvent = async (updatedEvent: OurEvent) => {
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/events/update", {
+        method: "PUT",
+        body: JSON.stringify({
+          _id: updatedEvent._id,
+          live: updatedEvent.live,
+          playList: updatedEvent.playList,
+          title: updatedEvent.title,
+          songs: updatedEvent.songs,
+          date: updatedEvent.date,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Список успішно оновлено!");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Упс! Щось пішло не так...");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const songs = [...event!.songs];
+    const [removed] = songs.splice(result.source.index, 1);
+    songs.splice(result.destination.index, 0, removed);
+
+    const updatedEvent = { ...event!, songs }; // Update state with new song order
+    setEvent(updatedEvent);
+    updateEvent(updatedEvent);
+    // Trigger a database update here to reflect the new song order
+    // ... your code to update the database ...
+  };
+
   return (
     <section className="padding-x py-5">
       <h1 className="head_text  text-primary-600">{event?.title}</h1>
@@ -87,30 +131,60 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
         {event?.date ? new Date(event.date).toLocaleDateString() : "No date"}
       </div>
       <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
-      <ul className="flex flex-col gap-6 mt-10 pl-8 text-lg font-medium">
-        {event?.songs &&
-          event.songs.map((song, index) => (
-            <li key={index}>
-              {/* <h2 className="mb-4">Пісня {index}</h2> */}
-              <Link
-                href={`/songs/${song.song}`}
-                className="bg-gray-400 text-white hover:bg-gray-500 text-base font-semibold sm:text-xl sm:font-bold py-1.5 px-4 rounded-full"
-              >
-                {index}. {song.title}
-              </Link>
-            </li>
-          ))}
-      </ul>
+
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="list">
+          {(provided) => (
+            <ul
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="flex flex-col gap-6 mt-10 pl-8 text-lg font-medium"
+            >
+              {event?.songs &&
+                event.songs.map((song, index) => (
+                  <Draggable
+                    key={song.song}
+                    draggableId={song.song}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <li
+                        draggable={!submitting}
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        {/* <h2 className="mb-4">Пісня {index}</h2> */}
+                        <Link
+                          href={`/songs/${song.song}`}
+                          className="bg-gray-400 text-white hover:bg-gray-500 text-base font-semibold sm:text-xl sm:font-bold py-1.5 px-4 rounded-full"
+                        >
+                          {index}. {song.title}
+                        </Link>
+                      </li>
+                    )}
+                  </Draggable>
+                ))}
+            </ul>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
 
       <div className="flex flex-start gap-5 mt-10">
         <p className="font-semibold">Поділитись:</p>
         <div className="flex gap-1">
-          <TelegramShareButton url={`https://nl-music2.vercel.app/${path}`}>
+          <TelegramShareButton
+            disabled={submitting}
+            url={`https://nl-music2.vercel.app/${path}`}
+          >
             <TelegramIcon size={40} round={true}></TelegramIcon>
           </TelegramShareButton>
-          <ViberShareButton url={`https://nl-music2.vercel.app/${path}`}>
+          <ViberShareButton
+            disabled={submitting}
+            url={`https://nl-music2.vercel.app/${path}`}
+          >
             <ViberIcon size={40} round={true}></ViberIcon>
           </ViberShareButton>
         </div>
@@ -159,6 +233,17 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
       ) : (
         ""
       )}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1500} // Закрити автоматично через 3 секунди
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </section>
   );
 };
