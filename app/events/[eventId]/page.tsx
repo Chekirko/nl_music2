@@ -143,6 +143,11 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
               {event?.songs &&
                 event.songs.map((song, index) => (
                   <Draggable
+                    isDragDisabled={
+                      !session.data?.user ||
+                      session.data?.user.role !== "admin" ||
+                      submitting
+                    }
                     key={song.song}
                     draggableId={song.song}
                     index={index}
