@@ -51,8 +51,16 @@ export interface EventFormBlockProps {
   songs: Array<GettedSong>;
   event: OurEvent;
   setEvent: (event: OurEvent) => void;
-  song: EventSong;
+  song?: EventSong;
   index: number;
+}
+
+export interface AddSongToEventBlockProps {
+  songs: Array<GettedSong>;
+  event: OurEvent;
+  setEvent: (event: OurEvent) => void;
+  selectedSong: GettedSong | null;
+  setSelectedSong: (song: GettedSong | null) => void;
 }
 
 export interface SearchTitleForEventProps {
@@ -61,6 +69,14 @@ export interface SearchTitleForEventProps {
   index: number;
   event: OurEvent;
   existedSong?: EventSong;
+}
+
+export interface SearchTitleForNewSongInEventProps {
+  songs: Array<GettedSong>;
+  event: OurEvent;
+  setEvent: (event: OurEvent) => void;
+  selectedSong: GettedSong | null;
+  setSelectedSong: (song: GettedSong | null) => void;
 }
 
 export interface Song {

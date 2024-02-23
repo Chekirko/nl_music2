@@ -1,11 +1,11 @@
 "use client";
 
-import { OurEvent } from "@/types";
+import { GettedSong, OurEvent } from "@/types";
 import Link from "next/link";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { FormEvent, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { AgreeModal } from "@/components";
+import { AgreeModal, EventFormBlock } from "@/components";
 import { useRouter, usePathname } from "next/navigation";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast, ToastContainer } from "react-toastify";
@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import AddSongToEventBlock from "@/components/forms/AddSongToEventBlock";
 
 interface SingleEventPageProps {
   params: {
@@ -36,12 +37,22 @@ interface SingleEventPageProps {
 
 const SingleEventPage = ({ params }: SingleEventPageProps) => {
   const [event, setEvent] = useState<OurEvent>();
+  const [songs, setSongs] = useState<GettedSong[]>([]);
+  const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const session = useSession();
   const router = useRouter();
   const path = usePathname();
 
   useEffect(() => {
+    const fetchSongs = async () => {
+      const response = await fetch("/api/songs", {
+        next: { revalidate: 60 },
+      });
+      const data = await response.json();
+      setSongs(data);
+    };
+
     const fetchEvent = async () => {
       const response = await fetch(`/api/events/single?id=${params.eventId}`, {
         next: { revalidate: 60 },
@@ -51,6 +62,7 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
     };
 
     fetchEvent();
+    fetchSongs();
   }, []);
 
   const deleteEvent = async (e: FormEvent) => {
@@ -103,9 +115,9 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
   };
 
   const onDragEnd = (result: any) => {
-    if (!result.destination) return;
+    if (!result.destination || !event) return;
 
-    const songs = [...event!.songs];
+    const songs = [...event.songs];
     const [removed] = songs.splice(result.source.index, 1);
     songs.splice(result.destination.index, 0, removed);
 
@@ -116,11 +128,40 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
     // ... your code to update the database ...
   };
 
-  const handleDeleteSong = (id: string) => {
-    const updatedSongs = event?.songs?.filter((song) => song.song !== id);
+  const handleDeleteSong = (index: string) => {
+    const updatedSongs = event?.songs?.filter(
+      (song, ind) => ind.toString() !== index
+    );
     const updatedEvent = { ...event!, songs: updatedSongs! }; // Update state with new song order
     setEvent(updatedEvent);
     updateEvent(updatedEvent);
+  };
+
+  const handleAddSong = (e: FormEvent) => {
+    e.preventDefault();
+    if (!selectedSong || !event) {
+      return;
+    }
+
+    const ind = event.songs.length.toString();
+    const updatedEventSongs = [
+      ...event.songs,
+      {
+        comment: selectedSong.comment,
+        ind: ind,
+        song: selectedSong._id.toString(),
+        title: selectedSong.title,
+      },
+    ];
+
+    const updatedEvent: OurEvent = {
+      ...event,
+      songs: updatedEventSongs,
+    };
+
+    setEvent(updatedEvent);
+    updateEvent(updatedEvent);
+    setSelectedSong(null);
   };
 
   return (
@@ -167,8 +208,8 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
                       session.data?.user.role !== "admin" ||
                       submitting
                     }
-                    key={song.song}
-                    draggableId={song.song}
+                    key={index}
+                    draggableId={index.toString()}
                     index={index}
                   >
                     {(provided) => (
@@ -208,7 +249,9 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Відміна</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDeleteSong(song.song)}
+                                    onClick={() =>
+                                      handleDeleteSong(index.toString())
+                                    }
                                   >
                                     Видалити
                                   </AlertDialogAction>
@@ -224,6 +267,34 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
           )}
         </Droppable>
       </DragDropContext>
+
+      {session.data?.user.role === "admin" && (
+        <>
+          {" "}
+          <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
+          <form
+            onSubmit={handleAddSong}
+            className="mt-10 flex flex-col w-fit items-end gap-2"
+          >
+            <AddSongToEventBlock
+              songs={songs}
+              event={event!}
+              setEvent={setEvent}
+              selectedSong={selectedSong}
+              setSelectedSong={setSelectedSong}
+            />
+            <button
+              type="submit"
+              disabled={!selectedSong}
+              className={`rounded-full px-5 py-1.5 w-fit text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 ${
+                !selectedSong ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-800"
+              }`}
+            >
+              Додати
+            </button>
+          </form>
+        </>
+      )}
 
       <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
 
