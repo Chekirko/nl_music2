@@ -79,7 +79,7 @@ const UpdateEventPage = () => {
       });
 
       if (response.ok) {
-        router.push(`/events`);
+        router.push(`/events/${event._id}`);
       }
     } catch (error) {
       console.log(error);

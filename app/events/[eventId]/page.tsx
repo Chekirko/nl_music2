@@ -2,6 +2,7 @@
 
 import { OurEvent } from "@/types";
 import Link from "next/link";
+import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { FormEvent, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AgreeModal } from "@/components";
@@ -15,6 +16,17 @@ import {
   TelegramIcon,
   ViberIcon,
 } from "react-share";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface SingleEventPageProps {
   params: {
@@ -104,6 +116,13 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
     // ... your code to update the database ...
   };
 
+  const handleDeleteSong = (id: string) => {
+    const updatedSongs = event?.songs?.filter((song) => song.song !== id);
+    const updatedEvent = { ...event!, songs: updatedSongs! }; // Update state with new song order
+    setEvent(updatedEvent);
+    updateEvent(updatedEvent);
+  };
+
   return (
     <section className="padding-x py-5">
       <h1 className="head_text  text-primary-600">{event?.title}</h1>
@@ -158,14 +177,45 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
+                        className="flex justify-start w-fit bg-gray-400 hover:bg-gray-500 rounded-full"
                       >
                         {/* <h2 className="mb-4">Пісня {index}</h2> */}
                         <Link
                           href={`/songs/${song.song}`}
-                          className="bg-gray-400 text-white hover:bg-gray-500 text-base font-semibold sm:text-xl sm:font-bold py-1.5 px-4 rounded-full"
+                          className="bg-gray-400 text-white text-base font-semibold sm:text-xl sm:font-bold py-1.5 px-4 rounded-full"
                         >
                           {index}. {song.title}
                         </Link>
+                        {session.data?.user &&
+                          session.data?.user.role === "admin" && (
+                            <AlertDialog>
+                              <AlertDialogTrigger className="py-1.5 px-4 rounded-full flex items-center">
+                                <AiOutlineClose
+                                  size={18}
+                                  className="text-blue-800"
+                                />
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="bg-white">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Ти впевнений?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription className="font-medium">
+                                    Добряче подумай! Ця пісня не така вже й
+                                    погана... Нею можна гарно прославити Бога!
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Відміна</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteSong(song.song)}
+                                  >
+                                    Видалити
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                       </li>
                     )}
                   </Draggable>
