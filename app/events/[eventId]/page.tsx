@@ -236,7 +236,7 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
                                   className="text-blue-800"
                                 />
                               </AlertDialogTrigger>
-                              <AlertDialogContent className="bg-white">
+                              <AlertDialogContent className="bg-white max-sm:w-72">
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
                                     Ти впевнений?

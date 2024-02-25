@@ -12,9 +12,30 @@ import {
   DocumentTextIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import AlertDialogForSongPage from "@/components/AlertDialogForSongPage";
 
 interface SingleSongPageProps {
   params: {
@@ -180,6 +201,39 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     updateSong(updatedSong);
   };
 
+  const handleDoubleBlock = (index: number) => {
+    if (!renderedBlocks) return;
+
+    const newBlock = { ...renderedBlocks[index] };
+    const updatedBlocks = [...renderedBlocks];
+    updatedBlocks.splice(index + 1, 0, newBlock);
+
+    setRenderedBlocks(updatedBlocks);
+
+    const updatedSong = {
+      ...song!,
+      blocks: updatedBlocks,
+    };
+
+    setSong(updatedSong);
+    updateSong(updatedSong);
+  };
+
+  const handleDeleteBlock = (index: number) => {
+    if (!renderedBlocks || !song) return;
+    const updatedBlocks = [...renderedBlocks];
+    updatedBlocks.splice(index, 1);
+
+    setRenderedBlocks(updatedBlocks);
+
+    const updatedSong = {
+      ...song,
+      blocks: updatedBlocks,
+    };
+    setSong(updatedSong);
+    updateSong(updatedSong);
+  };
+
   const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
 
   return (
@@ -328,12 +382,36 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="mb-6 border border-blue-500 rounded-md p-4 w-fit bg-white"
+                            className="mb-6 relative border border-blue-500 rounded-md p-4 w-fit bg-white"
                           >
                             <h3 className="font-semibold text-blue-900 mb-1 underline">
                               {block.name}
                             </h3>
                             {renderLines}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="absolute right-4 top-4">
+                                <PencilSquareIcon className="w-6 h-6 text-gray-400" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="bg-white rounded-lg border border-blue-600">
+                                <DropdownMenuLabel className="r rounded-lg bg-blue-400">
+                                  Ти можеш:
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
+                                  <button
+                                    onClick={() => handleDoubleBlock(index)}
+                                  >
+                                    Дублювати
+                                  </button>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
+                                  <AlertDialogForSongPage
+                                    handleDeleteBlock={handleDeleteBlock}
+                                    index={index}
+                                  />
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         )}
                       </Draggable>
