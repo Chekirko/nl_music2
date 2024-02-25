@@ -29,9 +29,9 @@ const UpdateSong = () => {
   const updateSong = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const sortedBlocks = song.blocks.sort(
-      (a, b) => Number(a.ind) - Number(b.ind)
-    );
+    // const sortedBlocks = song.blocks.sort(
+    //   (a, b) => Number(a.ind) - Number(b.ind)
+    // );
     try {
       const response = await fetch("/api/songs/change", {
         method: "PUT",
@@ -46,7 +46,7 @@ const UpdateSong = () => {
           origin: song.origin,
           video: song.video,
           ourVideo: song.ourVideo,
-          blocks: sortedBlocks,
+          blocks: song.blocks,
         }),
       });
 

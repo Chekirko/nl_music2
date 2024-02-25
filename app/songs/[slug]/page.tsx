@@ -2,16 +2,19 @@
 import { SongLink } from "@/components";
 import { songData } from "@/constants/scheduleData";
 import { Block, GettedSong } from "@/types";
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   MusicalNoteIcon,
   ChatBubbleBottomCenterTextIcon,
   DocumentTextIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface SingleSongPageProps {
   params: {
@@ -21,10 +24,12 @@ interface SingleSongPageProps {
 
 const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const router = useRouter();
+  const session = useSession();
   const [song, setSong] = useState<GettedSong>();
   const [viewText, setViewText] = useState(true);
   const [viewChords, setViewChords] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [renderedBlocks, setRenderedBlocks] = useState<Block[] | undefined>();
 
@@ -34,9 +39,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         next: { revalidate: 60 },
       });
       const song = await response.json();
-      const blocks = song?.blocks
-        .filter((block: Block) => block.name !== "")
-        .sort((a: Block, b: Block) => Number(a.ind) - Number(b.ind));
+      const blocks = song?.blocks.filter((block: Block) => block.name !== "");
 
       setSong(song);
       setRenderedBlocks(blocks);
@@ -46,9 +49,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   }, []);
 
   const sortBlocks = () => {
-    const blocks = song?.blocks
-      .filter((block: Block) => block.name !== "")
-      .sort((a: Block, b: Block) => Number(a.ind) - Number(b.ind));
+    const blocks = song?.blocks.filter((block: Block) => block.name !== "");
     return blocks;
   };
 
@@ -127,6 +128,58 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       }
     );
   };
+
+  const updateSong = async (song: GettedSong) => {
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/songs/change", {
+        method: "PUT",
+        body: JSON.stringify({
+          _id: song._id,
+          title: song.title,
+          comment: song.comment,
+          rythm: song.rythm,
+          tags: song.tags,
+          key: song.key,
+          mode: song.mode,
+          origin: song.origin,
+          video: song.video,
+          ourVideo: song.ourVideo,
+          blocks: song.blocks,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Пісню успішно оновлено!");
+      }
+    } catch (error) {
+      toast.error("Упс! Щось пішло не так...");
+      console.log(error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const updatedBlocks = Array.from(renderedBlocks!);
+    const [reorderedBlock] = updatedBlocks.splice(result.source.index, 1);
+    updatedBlocks.splice(result.destination.index, 0, reorderedBlock);
+
+    setRenderedBlocks(updatedBlocks);
+
+    const updatedSong = {
+      ...song!,
+      blocks: updatedBlocks,
+    };
+    setSong(updatedSong);
+    updateSong(updatedSong);
+  };
+
   const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
 
   return (
@@ -188,78 +241,106 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       {tags && (
         <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
       )}
-      <div>
-        {!viewChords &&
-          viewText &&
-          renderedBlocks?.map((block, index) => {
-            return (
-              <div key={index} className="mb-6">
-                <h3 className="font-semibold text-blue-900 mb-1 underline">
-                  {block.name}
-                </h3>
-                {block.lines.split("\n").map((line, i) => {
-                  return (
-                    <p key={i} className="ps-2">
-                      {line}
-                    </p>
-                  );
-                })}
-              </div>
-            );
-          })}
-        {!viewText &&
-          viewChords &&
-          renderedBlocks?.map((block, index) => {
-            return (
-              <div key={index} className="mb-6">
-                <h3 className="font-semibold text-blue-900 mb-1 underline">
-                  {block.name}
-                </h3>
-                {block.lines.split("\n").map((line, i) => {
-                  return (
-                    <p key={i} className="blue_gradient font-semibold ps-2">
-                      {line}
-                    </p>
-                  );
-                })}
-              </div>
-            );
-          })}
-        {viewChords &&
-          viewText &&
-          renderedBlocks?.map((block, index) => {
-            const lines = block.lines.split("\n");
-            const renderLines = lines.map((line, i) => {
-              let style;
-
-              if (Number(block.version) === 1) {
-                if (i % 2 === 0) {
-                  style = "blue_gradient font-semibold ps-2"; // Парні рядки версії 1
-                } else {
-                  style = "ps-2"; // Непарні рядки версії 1
-                }
-              } else if (Number(block.version) === 2) {
-                style = "ps-2"; // Версія 2
-              } else if (Number(block.version) === 3) {
-                style = "blue_gradient font-semibold ps-2"; // Версія 3
-              }
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div>
+          {!viewChords &&
+            viewText &&
+            renderedBlocks?.map((block, index) => {
               return (
-                <p key={i} className={style}>
-                  {line}
-                </p>
+                <div key={index} className="mb-6">
+                  <h3 className="font-semibold text-blue-900 mb-1 underline">
+                    {block.name}
+                  </h3>
+                  {block.lines.split("\n").map((line, i) => {
+                    return (
+                      <p key={i} className="ps-2">
+                        {line}
+                      </p>
+                    );
+                  })}
+                </div>
               );
-            });
+            })}
+          {!viewText &&
+            viewChords &&
+            renderedBlocks?.map((block, index) => {
+              return (
+                <div key={index} className="mb-6">
+                  <h3 className="font-semibold text-blue-900 mb-1 underline">
+                    {block.name}
+                  </h3>
+                  {block.lines.split("\n").map((line, i) => {
+                    return (
+                      <p key={i} className="blue_gradient font-semibold ps-2">
+                        {line}
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            })}
 
-            return (
-              <div key={index} className="mb-6">
-                <h3 className="font-semibold text-blue-900 mb-1 underline">
-                  {block.name}
-                </h3>
-                {renderLines}
+          <Droppable droppableId="blocks">
+            {(provided) => (
+              <div ref={provided.innerRef} {...provided.droppableProps}>
+                {viewChords &&
+                  viewText &&
+                  renderedBlocks?.map((block, index) => {
+                    const lines = block.lines.split("\n");
+                    const renderLines = lines.map((line, i) => {
+                      let style;
+
+                      if (Number(block.version) === 1) {
+                        if (i % 2 === 0) {
+                          style = "blue_gradient font-semibold ps-2"; // Парні рядки версії 1
+                        } else {
+                          style = "ps-2"; // Непарні рядки версії 1
+                        }
+                      } else if (Number(block.version) === 2) {
+                        style = "ps-2"; // Версія 2
+                      } else if (Number(block.version) === 3) {
+                        style = "blue_gradient font-semibold ps-2"; // Версія 3
+                      }
+                      return (
+                        <p key={i} className={style}>
+                          {line}
+                        </p>
+                      );
+                    });
+
+                    return (
+                      <Draggable
+                        isDragDisabled={
+                          !session.data?.user ||
+                          session.data?.user.role !== "admin" ||
+                          submitting
+                        }
+                        key={index}
+                        draggableId={index.toString()}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            draggable={!submitting}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="mb-6 border border-blue-500 rounded-md p-4 w-fit"
+                          >
+                            <h3 className="font-semibold text-blue-900 mb-1 underline">
+                              {block.name}
+                            </h3>
+                            {renderLines}
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
               </div>
-            );
-          })}
-      </div>
+            )}
+          </Droppable>
+        </div>
+      </DragDropContext>
 
       <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
         <SongLink
@@ -285,6 +366,17 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           }
         `}</style>
       </div>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000} // Закрити автоматично через 3 секунди
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import Song from "@/models/song";
 import { connectToDB } from "@/utils/database";
 
+export const dynamic = "force-dynamic";
+
 export const PUT = async (req: Request, res: Response) => {
   const {
     _id,
