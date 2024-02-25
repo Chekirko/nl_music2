@@ -183,65 +183,68 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
 
   return (
-    <div className="padding-x">
-      <h1 className="head_text  text-blue-600">{song?.title}</h1>
-      <div className="flex flex-start gap-8 mt-5">
-        <button
-          className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
-          onClick={handleViewChords}
-        >
-          <MusicalNoteIcon className="w-8 h-8 text-gray-500" />
-        </button>
-        <button
-          className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
-          onClick={handleViewText}
-        >
-          <ChatBubbleBottomCenterTextIcon className="w-8 h-8 text-gray-500" />
-        </button>
-        <button
-          className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
-          onClick={handleCopyBlocks}
-        >
-          {isCopied ? (
-            <CheckIcon className="w-8 h-8 text-gray-500" />
-          ) : (
-            <DocumentTextIcon className="w-8 h-8 text-gray-500" />
-          )}
-        </button>
-      </div>
-      <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
-      <p className="mt-5">Тональність: {song?.key}</p>
-      {song?.rythm && song.rythm !== "" && <p>Темп: {song.rythm}</p>}
-      {song?.comment && song.comment !== "" && <p>Коментар: {song.comment}</p>}
-      {song?.mode && song.mode !== "" && <p>Модуляція: {song.mode}</p>}
-      {song?.origin && song.origin !== "" && (
-        <p>
-          Оригінал пісні:{" "}
-          <Link href={song.origin} className="font-semibold blue_gradient">
-            перейти...
-          </Link>
-        </p>
-      )}
-      <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
-      <div className="flex flex-wrap gap-2">
-        {tags &&
-          tags.map((tag) => (
-            <button
-              className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
-              key={tag}
-              type="button"
-              onClick={() => {
-                router.push(`/songs/tags/${tag}?forwardedTag=${tag}`);
-              }}
-            >
-              {tag}
-            </button>
-          ))}
-      </div>
-      {tags && (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="padding-x">
+        <h1 className="head_text  text-blue-600">{song?.title}</h1>
+        <div className="flex flex-start gap-8 mt-5">
+          <button
+            className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
+            onClick={handleViewChords}
+          >
+            <MusicalNoteIcon className="w-8 h-8 text-gray-500" />
+          </button>
+          <button
+            className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
+            onClick={handleViewText}
+          >
+            <ChatBubbleBottomCenterTextIcon className="w-8 h-8 text-gray-500" />
+          </button>
+          <button
+            className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
+            onClick={handleCopyBlocks}
+          >
+            {isCopied ? (
+              <CheckIcon className="w-8 h-8 text-gray-500" />
+            ) : (
+              <DocumentTextIcon className="w-8 h-8 text-gray-500" />
+            )}
+          </button>
+        </div>
+        <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
+        <p className="mt-5">Тональність: {song?.key}</p>
+        {song?.rythm && song.rythm !== "" && <p>Темп: {song.rythm}</p>}
+        {song?.comment && song.comment !== "" && (
+          <p>Коментар: {song.comment}</p>
+        )}
+        {song?.mode && song.mode !== "" && <p>Модуляція: {song.mode}</p>}
+        {song?.origin && song.origin !== "" && (
+          <p>
+            Оригінал пісні:{" "}
+            <Link href={song.origin} className="font-semibold blue_gradient">
+              перейти...
+            </Link>
+          </p>
+        )}
         <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
-      )}
-      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex flex-wrap gap-2">
+          {tags &&
+            tags.map((tag) => (
+              <button
+                className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
+                key={tag}
+                type="button"
+                onClick={() => {
+                  router.push(`/songs/tags/${tag}?forwardedTag=${tag}`);
+                }}
+              >
+                {tag}
+              </button>
+            ))}
+        </div>
+        {tags && (
+          <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
+        )}
+
         <div>
           {!viewChords &&
             viewText &&
@@ -325,7 +328,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="mb-6 border border-blue-500 rounded-md p-4 w-fit"
+                            className="mb-6 border border-blue-500 rounded-md p-4 w-fit bg-white"
                           >
                             <h3 className="font-semibold text-blue-900 mb-1 underline">
                               {block.name}
@@ -336,48 +339,49 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                       </Draggable>
                     );
                   })}
+                {provided.placeholder}
               </div>
             )}
           </Droppable>
         </div>
-      </DragDropContext>
 
-      <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
-        <SongLink
-          route="/update-song"
-          type="Змінити пісню"
-          id={params.slug}
-        ></SongLink>
-      </div>
-      <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
-      <div>
-        <iframe
-          width="500"
-          height="281"
-          src={song?.video}
-          title={song?.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        ></iframe>
-        <style jsx>{`
-          @media (max-width: 600px) {
-            iframe {
-              width: 100%; /* Ширина на мобільних пристроях */
+        <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
+          <SongLink
+            route="/update-song"
+            type="Змінити пісню"
+            id={params.slug}
+          ></SongLink>
+        </div>
+        <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
+        <div>
+          <iframe
+            width="500"
+            height="281"
+            src={song?.video}
+            title={song?.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          ></iframe>
+          <style jsx>{`
+            @media (max-width: 600px) {
+              iframe {
+                width: 100%; /* Ширина на мобільних пристроях */
+              }
             }
-          }
-        `}</style>
+          `}</style>
+        </div>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000} // Закрити автоматично через 3 секунди
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </div>
-      <ToastContainer
-        position="bottom-right"
-        autoClose={3000} // Закрити автоматично через 3 секунди
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-    </div>
+    </DragDropContext>
   );
 };
 
