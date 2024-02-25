@@ -388,30 +388,33 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                               {block.name}
                             </h3>
                             {renderLines}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger className="absolute right-4 top-4">
-                                <PencilSquareIcon className="w-6 h-6 text-gray-400" />
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="bg-white rounded-lg border border-blue-600">
-                                <DropdownMenuLabel className="r rounded-lg bg-blue-400">
-                                  Ти можеш:
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
-                                  <button
-                                    onClick={() => handleDoubleBlock(index)}
-                                  >
-                                    Дублювати
-                                  </button>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
-                                  <AlertDialogForSongPage
-                                    handleDeleteBlock={handleDeleteBlock}
-                                    index={index}
-                                  />
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            {session.data?.user &&
+                              session.data?.user.role === "admin" && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger className="absolute right-4 top-4">
+                                    <PencilSquareIcon className="w-6 h-6 text-gray-400" />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent className="bg-white rounded-lg border border-blue-600">
+                                    <DropdownMenuLabel className="r rounded-lg bg-blue-400">
+                                      Ти можеш:
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
+                                      <button
+                                        onClick={() => handleDoubleBlock(index)}
+                                      >
+                                        Дублювати
+                                      </button>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
+                                      <AlertDialogForSongPage
+                                        handleDeleteBlock={handleDeleteBlock}
+                                        index={index}
+                                      />
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                           </div>
                         )}
                       </Draggable>
