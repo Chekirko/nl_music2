@@ -381,38 +381,41 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                             {...provided.dragHandleProps}
                             className="mb-6 relative border border-blue-500 rounded-md p-4 w-fit bg-white"
                           >
-                            <h3 className="font-semibold text-blue-900 mb-1 underline">
-                              {block.name}
-                            </h3>
+                            <div className="flex justify-between gap-10 mb-3">
+                              <h3 className="font-semibold text-blue-900 underline">
+                                {block.name}
+                              </h3>
+                              {session.data?.user &&
+                                session.data?.user.role === "admin" && (
+                                  <div className="flex gap-3">
+                                    <AlertDialogForSongPage
+                                      type={1}
+                                      text={
+                                        "Ти дійсно хочеш продублювати цей блок?"
+                                      }
+                                      action={"Дублювати"}
+                                      handleUpdateBlock={handleDoubleBlock}
+                                      index={index}
+                                    />
+                                    <EditSongBlockDialog
+                                      handleUpdateBlock={handleUpdateBlock}
+                                      index={index}
+                                      block={block}
+                                    />
+                                    <AlertDialogForSongPage
+                                      type={2}
+                                      text={
+                                        "Хочеш видалити цей блок? Ця дія незворотня!"
+                                      }
+                                      action={"Видалити"}
+                                      handleUpdateBlock={handleDeleteBlock}
+                                      index={index}
+                                    />
+                                  </div>
+                                )}
+                            </div>
+
                             {renderLines}
-                            {session.data?.user &&
-                              session.data?.user.role === "admin" && (
-                                <div className="absolute right-4 top-4 flex gap-2">
-                                  <AlertDialogForSongPage
-                                    type={1}
-                                    text={
-                                      "Ти дійсно хочеш продублювати цей блок?"
-                                    }
-                                    action={"Дублювати"}
-                                    handleUpdateBlock={handleDoubleBlock}
-                                    index={index}
-                                  />
-                                  <EditSongBlockDialog
-                                    handleUpdateBlock={handleUpdateBlock}
-                                    index={index}
-                                    block={block}
-                                  />
-                                  <AlertDialogForSongPage
-                                    type={2}
-                                    text={
-                                      "Хочеш видалити цей блок? Ця дія незворотня!"
-                                    }
-                                    action={"Видалити"}
-                                    handleUpdateBlock={handleDeleteBlock}
-                                    index={index}
-                                  />
-                                </div>
-                              )}
                           </div>
                         )}
                       </Draggable>
