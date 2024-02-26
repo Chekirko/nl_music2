@@ -18,7 +18,7 @@ const SongBlockForEdit = ({ block, setBlock }: Props) => {
           setBlock(updatedBlock);
         }}
         placeholder="Частинка пісні"
-        className="form_textarea"
+        className="form_textarea border border-gray-500 rounded-lg"
       />
     </label>
   );

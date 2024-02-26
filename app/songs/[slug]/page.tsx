@@ -1,41 +1,21 @@
 "use client";
 import { SongLink } from "@/components";
-import { songData } from "@/constants/scheduleData";
 import { Block, GettedSong } from "@/types";
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import EditSongBlockModal from "@/components/EditSongBlockModal";
+import { EditSongBlockDialog } from "@/components/EditSongBlockDialog";
 import {
   MusicalNoteIcon,
   ChatBubbleBottomCenterTextIcon,
   DocumentTextIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
-import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 import AlertDialogForSongPage from "@/components/AlertDialogForSongPage";
 
 interface SingleSongPageProps {
@@ -407,38 +387,31 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                             {renderLines}
                             {session.data?.user &&
                               session.data?.user.role === "admin" && (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger className="absolute right-4 top-4">
-                                    <PencilSquareIcon className="w-6 h-6 text-gray-400" />
-                                  </DropdownMenuTrigger>
-
-                                  <DropdownMenuContent className="bg-white rounded-lg border border-blue-600">
-                                    <DropdownMenuLabel className="r rounded-lg bg-blue-400">
-                                      Ти можеш:
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
-                                      <button
-                                        onClick={() => handleDoubleBlock(index)}
-                                      >
-                                        Дублювати
-                                      </button>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
-                                      <AlertDialogForSongPage
-                                        handleDeleteBlock={handleDeleteBlock}
-                                        index={index}
-                                      />
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="hover:text-white hover:bg-blue-700 rounded-md">
-                                      <EditSongBlockModal
-                                        handleUpdateBlock={handleUpdateBlock}
-                                        index={index}
-                                        block={block}
-                                      />
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                <div className="absolute right-4 top-4 flex gap-2">
+                                  <AlertDialogForSongPage
+                                    type={1}
+                                    text={
+                                      "Ти дійсно хочеш продублювати цей блок?"
+                                    }
+                                    action={"Дублювати"}
+                                    handleUpdateBlock={handleDoubleBlock}
+                                    index={index}
+                                  />
+                                  <EditSongBlockDialog
+                                    handleUpdateBlock={handleUpdateBlock}
+                                    index={index}
+                                    block={block}
+                                  />
+                                  <AlertDialogForSongPage
+                                    type={2}
+                                    text={
+                                      "Хочеш видалити цей блок? Ця дія незворотня!"
+                                    }
+                                    action={"Видалити"}
+                                    handleUpdateBlock={handleDeleteBlock}
+                                    index={index}
+                                  />
+                                </div>
                               )}
                           </div>
                         )}
