@@ -29,9 +29,11 @@ export function EditSongBlockDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <PencilSquareIcon className="w-6 h-6 text-gray-400 hover:text-blue-400" />
+        <button>
+          <PencilSquareIcon className="w-6 h-6 text-gray-400 hover:text-blue-400" />
+        </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-sm:w-[340px] bg-white px-1">
+      <DialogContent className="sm:max-w-[600px] sm:px-6 max-sm:w-[340px] bg-white px-1">
         <DialogHeader>
           <DialogTitle>Змінити блок</DialogTitle>
           <DialogDescription>
