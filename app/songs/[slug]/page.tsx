@@ -15,8 +15,11 @@ import {
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Chord } from "tonal";
+import TonalChanger from "@/components/TonalChanger";
 
 import AlertDialogForSongPage from "@/components/AlertDialogForSongPage";
+import { Button } from "@/components/ui/button";
 
 interface SingleSongPageProps {
   params: {
@@ -32,8 +35,27 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const [viewChords, setViewChords] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isOriginTonal, setIsOriginTonal] = useState(false);
+  const [progression, setProgression] = useState<string[]>();
 
   const [renderedBlocks, setRenderedBlocks] = useState<Block[] | undefined>();
+
+  const createProgression = (mode: string) => {
+    const progression = [
+      Chord.transpose(mode, "m6"),
+      Chord.transpose(mode, "M6"),
+      Chord.transpose(mode, "m7"),
+      Chord.transpose(mode, "M7"),
+      mode,
+      Chord.transpose(mode, "m2"),
+      Chord.transpose(mode, "M2"),
+      Chord.transpose(mode, "m3"),
+      Chord.transpose(mode, "M3"),
+      Chord.transpose(mode, "P4"),
+      Chord.transpose(mode, "P5"),
+    ];
+    return progression;
+  };
 
   useEffect(() => {
     const fetchSong = async () => {
@@ -44,6 +66,10 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       const blocks = song?.blocks.filter((block: Block) => block.name !== "");
 
       setSong(song);
+      const progression = createProgression(song.key);
+      console.log(progression);
+
+      setProgression(progression);
       setRenderedBlocks(blocks);
     };
 
@@ -108,6 +134,63 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     return;
   };
 
+  const changeTonal = (interval: string, tonal: string) => {
+    if (!viewText || !viewChords) return;
+    const updatedBlocks = renderedBlocks?.map((block) => {
+      // Перевіряємо версію блоку
+      if (Number(block.version) === 1) {
+        // Якщо версія блоку 1
+        const lines = block.lines.split("\n");
+        // Розбиваємо рядок на окремі рядки
+        const modifiedLines = lines.map((line, index) => {
+          // Беремо тільки непарні рядки
+          if (index % 2 === 0) {
+            // Розбиваємо рядок на окремі частини по пробілу
+            const parts = line.split(" ");
+            console.log(parts);
+            // Тут ви можете змінити кожну частину певним чином
+            // Наприклад, тут відбувається зміна всіх частин на верхній регістр
+            const newParts = parts.map((c) => Chord.transpose(c, interval));
+            // Збираємо модифікований рядок знову разом
+            return newParts.join(" ");
+          } else {
+            // Якщо рядок парний, просто повертаємо без змін
+            return line;
+          }
+        });
+        // Збираємо модифікований блок знову разом
+        return { ...block, lines: modifiedLines.join("\n") };
+      } else if (Number(block.version) === 3) {
+        // Якщо версія блоку 3
+        const lines = block.lines.split("\n"); // Розбиваємо рядок на окремі рядки
+        const modifiedLines = lines.map((line) => {
+          // Розбиваємо рядок на окремі частини по пробілу
+          const parts = line.split(" ");
+          // Тут ви можете змінити кожну частину певним чином
+          // Наприклад, тут відбувається зміна всіх частин на нижній регістр
+          const newParts = parts.map((c) => Chord.transpose(c, interval));
+          // Збираємо модифікований рядок знову разом
+          return newParts.join(" ");
+        });
+        // Збираємо модифікований блок знову разом
+        return { ...block, lines: modifiedLines.join("\n") };
+      } else {
+        // Якщо версія блоку 2 або інша, просто повертаємо блок без змін
+        return block;
+      }
+    });
+    const updatedSong = {
+      ...song!,
+      key: tonal,
+      blocks: updatedBlocks!,
+    };
+    const newProgression = createProgression(tonal);
+    setProgression(newProgression);
+    setRenderedBlocks(updatedBlocks);
+    setSong(updatedSong);
+    updateSong(updatedSong);
+  };
+
   const handleCopyBlocks = () => {
     // Отримайте текстовий вміст renderedBlocks
     const blocksText = renderedBlocks
@@ -164,7 +247,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   };
 
   const onDragEnd = (result: any) => {
-    if (!result.destination) {
+    if (!result.destination || !isOriginTonal) {
       return;
     }
 
@@ -183,7 +266,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   };
 
   const handleDoubleBlock = (index: number) => {
-    if (!renderedBlocks) return;
+    if (!renderedBlocks || !isOriginTonal) return;
 
     const newBlock = { ...renderedBlocks[index] };
     const updatedBlocks = [...renderedBlocks];
@@ -216,7 +299,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   };
 
   const handleUpdateBlock = (index: number, block: Block) => {
-    if (!renderedBlocks || !song) return;
+    if (!renderedBlocks || !song || !isOriginTonal) return;
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks[index] = block;
 
@@ -295,6 +378,12 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         {tags && (
           <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
         )}
+
+        <TonalChanger
+          progression={progression}
+          changeTonal={changeTonal}
+          submitting={submitting}
+        />
 
         <div>
           {!viewChords &&
@@ -451,6 +540,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
             }
           `}</style>
         </div>
+        <div></div>
         <ToastContainer
           position="bottom-right"
           autoClose={3000} // Закрити автоматично через 3 секунди
