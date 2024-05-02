@@ -35,7 +35,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const [viewChords, setViewChords] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [isOriginTonal, setIsOriginTonal] = useState(false);
+  const [isOriginTonal, setIsOriginTonal] = useState(true);
   const [progression, setProgression] = useState<string[]>();
 
   const [renderedBlocks, setRenderedBlocks] = useState<Block[] | undefined>();
