@@ -67,7 +67,6 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
 
       setSong(song);
       const progression = createProgression(song.key);
-      console.log(progression);
 
       setProgression(progression);
       setRenderedBlocks(blocks);
@@ -185,10 +184,11 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       blocks: updatedBlocks!,
     };
     const newProgression = createProgression(tonal);
+    setIsOriginTonal(false);
     setProgression(newProgression);
     setRenderedBlocks(updatedBlocks);
     setSong(updatedSong);
-    updateSong(updatedSong);
+    // updateSong(updatedSong);
   };
 
   const handleCopyBlocks = () => {
