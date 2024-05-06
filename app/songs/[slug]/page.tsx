@@ -19,7 +19,11 @@ import { Chord } from "tonal";
 import TonalChanger from "@/components/TonalChanger";
 
 import AlertDialogForSongPage from "@/components/AlertDialogForSongPage";
-import { Button } from "@/components/ui/button";
+import {
+  replaceBadChords,
+  pureTranspose,
+  changeChordsByTonal,
+} from "@/lib/chords";
 
 interface SingleSongPageProps {
   params: {
@@ -42,19 +46,19 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
 
   const createProgression = (mode: string) => {
     const progression = [
-      Chord.transpose(mode, "m6"),
-      Chord.transpose(mode, "M6"),
-      Chord.transpose(mode, "m7"),
-      Chord.transpose(mode, "M7"),
+      pureTranspose(mode, "m6"),
+      pureTranspose(mode, "M6"),
+      pureTranspose(mode, "m7"),
+      pureTranspose(mode, "M7"),
       mode,
-      Chord.transpose(mode, "m2"),
-      Chord.transpose(mode, "M2"),
-      Chord.transpose(mode, "m3"),
-      Chord.transpose(mode, "M3"),
-      Chord.transpose(mode, "P4"),
-      Chord.transpose(mode, "P5"),
+      pureTranspose(mode, "m2"),
+      pureTranspose(mode, "M2"),
+      pureTranspose(mode, "m3"),
+      pureTranspose(mode, "M3"),
+      pureTranspose(mode, "P4"),
+      pureTranspose(mode, "P5"),
     ];
-    return progression;
+    return replaceBadChords(progression);
   };
 
   useEffect(() => {
@@ -146,12 +150,13 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           if (index % 2 === 0) {
             // Розбиваємо рядок на окремі частини по пробілу
             const parts = line.split(" ");
-            console.log(parts);
             // Тут ви можете змінити кожну частину певним чином
             // Наприклад, тут відбувається зміна всіх частин на верхній регістр
-            const newParts = parts.map((c) => Chord.transpose(c, interval));
+            const newParts = parts.map((c) => pureTranspose(c, interval));
+            const cleanedNewParts = replaceBadChords(newParts);
+            const finishedParts = changeChordsByTonal(tonal, cleanedNewParts);
             // Збираємо модифікований рядок знову разом
-            return newParts.join(" ");
+            return finishedParts.join(" ");
           } else {
             // Якщо рядок парний, просто повертаємо без змін
             return line;
@@ -167,9 +172,11 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           const parts = line.split(" ");
           // Тут ви можете змінити кожну частину певним чином
           // Наприклад, тут відбувається зміна всіх частин на нижній регістр
-          const newParts = parts.map((c) => Chord.transpose(c, interval));
+          const newParts = parts.map((c) => pureTranspose(c, interval));
+          const cleanedNewParts = replaceBadChords(newParts);
+          const finishedParts = changeChordsByTonal(tonal, cleanedNewParts);
           // Збираємо модифікований рядок знову разом
-          return newParts.join(" ");
+          return finishedParts.join(" ");
         });
         // Збираємо модифікований блок знову разом
         return { ...block, lines: modifiedLines.join("\n") };
@@ -180,7 +187,6 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     });
     const updatedSong = {
       ...song!,
-      key: tonal,
       blocks: updatedBlocks!,
     };
     const newProgression = createProgression(tonal);
@@ -345,7 +351,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           </button>
         </div>
         <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
-        <p className="mt-5">Тональність: {song?.key}</p>
+        <p className="mt-5">Оригінальна тональність: {song?.key}</p>
         {song?.rythm && song.rythm !== "" && <p>Темп: {song.rythm}</p>}
         {song?.comment && song.comment !== "" && (
           <p>Коментар: {song.comment}</p>
