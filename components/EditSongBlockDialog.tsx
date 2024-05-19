@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
@@ -45,14 +46,16 @@ export function EditSongBlockDialog({
           setBlock={setEditBlock}
         ></SongBlockForEdit>
         <DialogFooter>
-          <Button
-            type="submit"
-            onClick={() => {
-              handleUpdateBlock(index, editBlock);
-            }}
-          >
-            Зберегти зміни
-          </Button>
+          <DialogClose>
+            <Button
+              type="submit"
+              onClick={() => {
+                handleUpdateBlock(index, editBlock);
+              }}
+            >
+              Зберегти зміни
+            </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,40 +1,5 @@
 import { Chord } from "tonal";
 
-// export const createProgression = (mode: string) => {
-//   if (mode.includes("b")) {
-//     const changedMode = Chord.transpose(mode, "M2");
-//     const transposedMode = Chord.transpose(changedMode, "m7");
-//     const progression = [
-//       Chord.transpose(transposedMode, "m6"),
-//       Chord.transpose(transposedMode, "M6"),
-//       Chord.transpose(transposedMode, "m7"),
-//       Chord.transpose(transposedMode, "M7"),
-//       transposedMode,
-//       Chord.transpose(transposedMode, "m2"),
-//       Chord.transpose(transposedMode, "M2"),
-//       Chord.transpose(transposedMode, "m3"),
-//       Chord.transpose(transposedMode, "M3"),
-//       Chord.transpose(transposedMode, "P4"),
-//       Chord.transpose(transposedMode, "P5"),
-//     ];
-//     return progression;
-//   } else {
-//     const progression = [
-//       Chord.transpose(mode, "m6"),
-//       Chord.transpose(mode, "M6"),
-//       Chord.transpose(mode, "m7"),
-//       Chord.transpose(mode, "M7"),
-//       mode,
-//       Chord.transpose(mode, "m2"),
-//       Chord.transpose(mode, "M2"),
-//       Chord.transpose(mode, "m3"),
-//       Chord.transpose(mode, "M3"),
-//       Chord.transpose(mode, "P4"),
-//       Chord.transpose(mode, "P5"),
-//     ];
-//     return progression;
-//   }
-// };
 export function replaceBadChords(array: string[]) {
   const replacements = {
     Cb: "B",
@@ -101,6 +66,82 @@ export function replaceBadChords(array: string[]) {
   return modifiedArray;
 }
 
+export function replaceBadTonals(array: string[]) {
+  const replacements = {
+    "C#": "Db",
+    "D#": "Eb",
+    "G#": "Ab",
+    "A#": "Bb",
+    "A#m": "Bbm",
+    Gb: "F#",
+    Abm: "G#m",
+    Gbm: "F#m",
+    Ebm: "D#m",
+    Dbm: "C#m",
+  };
+  // Пройдемося по кожному рядку у масиві
+  const modifiedArray = array.map((string: string) => {
+    // Пройдемося по кожній парі ключ-значення в об'єкті replacements
+    for (const [target, replacement] of Object.entries(replacements)) {
+      // Перевіримо, чи містить рядок потрібну послідовність букв
+      if (string.includes(target)) {
+        // Якщо так, замінимо її на відповідне значення
+        string = string.replace(
+          new RegExp(target.replace("#", "\\#"), "g"),
+          replacement
+        );
+      }
+    }
+    return string;
+  });
+
+  return modifiedArray;
+}
+
+// export function insertDoubledTonals(array: string[]) {
+//   const resultArray: string[] = [];
+//   const insertAfterMap: Record<string, string> = {
+//     "C#": "Db",
+//     "C#m": "Dbm",
+//     "D#": "Eb",
+//     "D#m": "Ebm",
+//     "F#": "Gb",
+//     "F#m": "Gbm",
+//     "G#": "Ab",
+//     "G#m": "Abm",
+//     "A#": "Bb",
+//     "A#m": "Bbm",
+//   };
+//   const insertBeforeMap: Record<string, string> = {
+//     Db: "C#",
+//     Dbm: "C#m",
+//     Eb: "D#",
+//     Ebm: "D#m",
+//     Gb: "F#",
+//     Gbm: "F#m",
+//     Ab: "G#",
+//     Abm: "G#m",
+//     Bb: "A#",
+//     Bbm: "A#m",
+//   };
+//   array.forEach((str) => {
+//     // Якщо поточний рядок є в об'єкті insertBeforeMap, додаємо відповідний рядок перед ним
+//     if (insertBeforeMap.hasOwnProperty(str)) {
+//       resultArray.push(insertBeforeMap[str]);
+//     }
+
+//     // Додаємо поточний рядок до результатного масиву
+//     resultArray.push(str);
+
+//     // Якщо поточний рядок є в об'єкті insertAfterMap, додаємо відповідний рядок після нього
+//     if (insertAfterMap.hasOwnProperty(str)) {
+//       resultArray.push(insertAfterMap[str]);
+//     }
+//   });
+
+//   return resultArray;
+// }
+
 export const pureTranspose = (chord: string, int: string) => {
   if (chord.includes("b")) {
     const a = Chord.transpose(chord, "M2");
@@ -114,136 +155,58 @@ export const pureTranspose = (chord: string, int: string) => {
   }
 };
 
+const chordsBem = {
+  "C#": "Db",
+  "D#": "Eb",
+  "F#": "Gb",
+  "G#": "Ab",
+  "A#": "Bb",
+  "C#m": "Dbm",
+  "D#m": "Ebm",
+  "F#m": "Gbm",
+  "G#m": "Abm",
+  "A#m": "Bbm",
+};
+
+const chordsDies = {
+  Db: "C#",
+  Eb: "D#",
+  Gb: "F#",
+  Ab: "G#",
+  Bb: "A#",
+  Dbm: "C#m",
+  Ebm: "D#m",
+  Gbm: "F#m",
+  Abm: "G#m",
+  Bbm: "A#m",
+};
+
 export function changeChordsByTonal(mode: string, array: string[]) {
   const replacements: Record<string, Record<string, string>> = {
-    G: {
-      Gbm: "F#m",
-    },
-    Em: {
-      Gbm: "F#m",
-    },
-    D: {
-      Gbm: "F#m",
-      Dbm: "C#m",
-    },
-    Bm: {
-      Gbm: "F#m",
-      Dbm: "C#m",
-    },
-    A: {
-      Gbm: "F#m",
-      Dbm: "C#m",
-      Abm: "G#m",
-    },
-    "F#m": {
-      Gbm: "F#m",
-      Dbm: "C#m",
-      Abm: "G#m",
-    },
-    E: {
-      Gbm: "F#m",
-      Dbm: "C#m",
-      Abm: "G#m",
-      Ebm: "D#m",
-    },
-    "C#m": {
-      Gbm: "F#m",
-      Dbm: "C#m",
-      Abm: "G#m",
-      Ebm: "D#m",
-    },
-    B: {
-      Dbm: "C#m",
-      Abm: "G#m",
-      Ebm: "D#m",
-      Bbm: "A#m",
-      Gb: "F#",
-    },
-    "G#m": {
-      Dbm: "C#m",
-      Abm: "G#m",
-      Ebm: "D#m",
-      Bbm: "A#m",
-      Gb: "F#",
-    },
-    "F#": {
-      Abm: "G#m",
-      Ebm: "D#m",
-      Bbm: "A#m",
-      Gb: "F#",
-      Db: "C#",
-    },
-    "D#m": {
-      Abm: "G#m",
-      Ebm: "D#m",
-      Bbm: "A#m",
-      Gb: "F#",
-      Db: "C#",
-    },
-    F: {
-      "A#": "Bb",
-    },
-    Dm: {
-      "A#": "Bb",
-    },
-    Bb: {
-      "A#": "Bb",
-      "D#": "Eb",
-    },
-    Gm: {
-      "A#": "Bb",
-      "D#": "Eb",
-    },
-    Eb: {
-      "A#": "Bb",
-      "D#": "Eb",
-      "G#": "Ab",
-    },
-    Cm: {
-      "A#": "Bb",
-      "D#": "Eb",
-      "G#": "Ab",
-    },
-    Ab: {
-      "D#": "Eb",
-      "G#": "Ab",
-      "C#": "Db",
-      "A#m": "Bbm",
-    },
-    Fm: {
-      "D#": "Eb",
-      "G#": "Ab",
-      "C#": "Db",
-      "A#m": "Bbm",
-    },
-    Db: {
-      "G#": "Ab",
-      "C#": "Db",
-      "A#m": "Bbm",
-      "D#m": "Ebm",
-      "F#": "Gb",
-    },
-    Bbm: {
-      "G#": "Ab",
-      "C#": "Db",
-      "A#m": "Bbm",
-      "D#m": "Ebm",
-      "F#": "Gb",
-    },
-    Gb: {
-      "C#": "Db",
-      "A#m": "Bbm",
-      "D#m": "Ebm",
-      "F#": "Gb",
-      "G#m": "Abm",
-    },
-    Ebm: {
-      "C#": "Db",
-      "A#m": "Bbm",
-      "D#m": "Ebm",
-      "F#": "Gb",
-      "G#m": "Abm",
-    },
+    G: chordsDies,
+    Em: chordsDies,
+    D: chordsDies,
+    Bm: chordsDies,
+    A: chordsDies,
+    "F#m": chordsDies,
+    E: chordsDies,
+    "C#m": chordsDies,
+    B: chordsDies,
+    "G#m": chordsDies,
+    "F#": chordsDies,
+    "D#m": chordsDies,
+    F: chordsBem,
+    Dm: chordsBem,
+    Bb: chordsBem,
+    Gm: chordsBem,
+    Eb: chordsBem,
+    Cm: chordsBem,
+    Ab: chordsBem,
+    Fm: chordsBem,
+    Db: chordsBem,
+    Bbm: chordsBem,
+    Gb: chordsBem,
+    Ebm: chordsBem,
   };
 
   const modifiedArray = array.map((string: string) => {

@@ -23,6 +23,7 @@ import {
   replaceBadChords,
   pureTranspose,
   changeChordsByTonal,
+  replaceBadTonals,
 } from "@/lib/chords";
 
 interface SingleSongPageProps {
@@ -56,9 +57,12 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       pureTranspose(mode, "m3"),
       pureTranspose(mode, "M3"),
       pureTranspose(mode, "P4"),
+      pureTranspose(mode, "A4"),
       pureTranspose(mode, "P5"),
     ];
-    return replaceBadChords(progression);
+    const clearTonals = replaceBadChords(progression);
+    const correctTonals = replaceBadTonals(clearTonals);
+    return correctTonals;
   };
 
   useEffect(() => {

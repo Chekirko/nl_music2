@@ -39,6 +39,8 @@ export default function TonalChanger({
     } else if (ind === 9) {
       interval = "P4";
     } else if (ind === 10) {
+      interval = "A4";
+    } else if (ind === 11) {
       interval = "P5";
     }
     return interval;
