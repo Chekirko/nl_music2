@@ -24,6 +24,7 @@ import {
   pureTranspose,
   changeChordsByTonal,
   replaceBadTonals,
+  insertDoubledTonals,
 } from "@/lib/chords";
 
 interface SingleSongPageProps {
@@ -42,6 +43,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [isOriginTonal, setIsOriginTonal] = useState(true);
   const [progression, setProgression] = useState<string[]>();
+  const [currentTonal, setCurrentTonal] = useState<string>();
 
   const [renderedBlocks, setRenderedBlocks] = useState<Block[] | undefined>();
 
@@ -61,7 +63,8 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       pureTranspose(mode, "P5"),
     ];
     const clearTonals = replaceBadChords(progression);
-    const correctTonals = replaceBadTonals(clearTonals);
+    // const correctTonals = replaceBadTonals(clearTonals);
+    const correctTonals = insertDoubledTonals(clearTonals);
     return correctTonals;
   };
 
@@ -76,6 +79,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       setSong(song);
       const progression = createProgression(song.key);
 
+      setCurrentTonal(song.key);
       setProgression(progression);
       setRenderedBlocks(blocks);
     };
@@ -159,6 +163,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
             const newParts = parts.map((c) => pureTranspose(c, interval));
             const cleanedNewParts = replaceBadChords(newParts);
             const finishedParts = changeChordsByTonal(tonal, cleanedNewParts);
+
             // Збираємо модифікований рядок знову разом
             return finishedParts.join(" ");
           } else {
@@ -198,6 +203,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     setProgression(newProgression);
     setRenderedBlocks(updatedBlocks);
     setSong(updatedSong);
+    setCurrentTonal(tonal);
     // updateSong(updatedSong);
   };
 
@@ -391,6 +397,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
 
         <TonalChanger
           progression={progression}
+          currentTonal={currentTonal!}
           changeTonal={changeTonal}
           submitting={submitting}
         />

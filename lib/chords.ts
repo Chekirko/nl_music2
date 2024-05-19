@@ -6,7 +6,6 @@ export function replaceBadChords(array: string[]) {
     Cbb: "Bb",
     Cbm: "Bm",
     Cbbm: "Bbm",
-    Dbm: "C#m",
     Dbb: "C",
     Dbbm: "Cm",
     Ebb: "D",
@@ -16,17 +15,13 @@ export function replaceBadChords(array: string[]) {
     Fbm: "Em",
     Fbbm: "Ebm",
     Gbb: "F",
-    Gbm: "F#m",
     Gbbm: "Fm",
     Abb: "G",
     Abbm: "Gm",
-    Abm: "G#m",
     Bbb: "A",
     Bbbm: "Am",
     "C##": "D",
     "C##m": "Dm",
-    "C#": "Db",
-    "D#": "Eb",
     "D##": "E",
     "D##m": "Em",
     "E#": "F",
@@ -37,10 +32,7 @@ export function replaceBadChords(array: string[]) {
     "F##m": "Gm",
     "G##": "A",
     "G##m": "Am",
-    "G#": "Ab",
-    "A#": "Bb",
     "A##": "B",
-    "A#m": "Bbm",
     "A##m": "Bm",
     "B#": "C",
     "B##": "Db",
@@ -98,49 +90,49 @@ export function replaceBadTonals(array: string[]) {
   return modifiedArray;
 }
 
-// export function insertDoubledTonals(array: string[]) {
-//   const resultArray: string[] = [];
-//   const insertAfterMap: Record<string, string> = {
-//     "C#": "Db",
-//     "C#m": "Dbm",
-//     "D#": "Eb",
-//     "D#m": "Ebm",
-//     "F#": "Gb",
-//     "F#m": "Gbm",
-//     "G#": "Ab",
-//     "G#m": "Abm",
-//     "A#": "Bb",
-//     "A#m": "Bbm",
-//   };
-//   const insertBeforeMap: Record<string, string> = {
-//     Db: "C#",
-//     Dbm: "C#m",
-//     Eb: "D#",
-//     Ebm: "D#m",
-//     Gb: "F#",
-//     Gbm: "F#m",
-//     Ab: "G#",
-//     Abm: "G#m",
-//     Bb: "A#",
-//     Bbm: "A#m",
-//   };
-//   array.forEach((str) => {
-//     // Якщо поточний рядок є в об'єкті insertBeforeMap, додаємо відповідний рядок перед ним
-//     if (insertBeforeMap.hasOwnProperty(str)) {
-//       resultArray.push(insertBeforeMap[str]);
-//     }
+export function insertDoubledTonals(array: string[]) {
+  const resultArray: string[] = [];
+  const insertAfterMap: Record<string, string> = {
+    "C#": "Db",
+    "C#m": "Dbm",
+    "D#": "Eb",
+    "D#m": "Ebm",
+    "F#": "Gb",
+    "F#m": "Gbm",
+    "G#": "Ab",
+    "G#m": "Abm",
+    "A#": "Bb",
+    "A#m": "Bbm",
+  };
+  const insertBeforeMap: Record<string, string> = {
+    Db: "C#",
+    Dbm: "C#m",
+    Eb: "D#",
+    Ebm: "D#m",
+    Gb: "F#",
+    Gbm: "F#m",
+    Ab: "G#",
+    Abm: "G#m",
+    Bb: "A#",
+    Bbm: "A#m",
+  };
+  array.forEach((str) => {
+    // Якщо поточний рядок є в об'єкті insertBeforeMap, додаємо відповідний рядок перед ним
+    if (insertBeforeMap.hasOwnProperty(str)) {
+      resultArray.push(insertBeforeMap[str]);
+    }
 
-//     // Додаємо поточний рядок до результатного масиву
-//     resultArray.push(str);
+    // Додаємо поточний рядок до результатного масиву
+    resultArray.push(str);
 
-//     // Якщо поточний рядок є в об'єкті insertAfterMap, додаємо відповідний рядок після нього
-//     if (insertAfterMap.hasOwnProperty(str)) {
-//       resultArray.push(insertAfterMap[str]);
-//     }
-//   });
+    // Якщо поточний рядок є в об'єкті insertAfterMap, додаємо відповідний рядок після нього
+    if (insertAfterMap.hasOwnProperty(str)) {
+      resultArray.push(insertAfterMap[str]);
+    }
+  });
 
-//   return resultArray;
-// }
+  return resultArray;
+}
 
 export const pureTranspose = (chord: string, int: string) => {
   if (chord.includes("b")) {
@@ -195,6 +187,12 @@ export function changeChordsByTonal(mode: string, array: string[]) {
     "G#m": chordsDies,
     "F#": chordsDies,
     "D#m": chordsDies,
+    "C#": chordsDies,
+    "D#": chordsDies,
+    "G#": chordsDies,
+    "A#": chordsDies,
+    Am: chordsDies,
+    C: chordsDies,
     F: chordsBem,
     Dm: chordsBem,
     Bb: chordsBem,
@@ -207,6 +205,9 @@ export function changeChordsByTonal(mode: string, array: string[]) {
     Bbm: chordsBem,
     Gb: chordsBem,
     Ebm: chordsBem,
+    Dbm: chordsBem,
+    Gbm: chordsBem,
+    Abm: chordsBem,
   };
 
   const modifiedArray = array.map((string: string) => {
@@ -218,6 +219,9 @@ export function changeChordsByTonal(mode: string, array: string[]) {
         break;
       case "D":
         targetMode = replacements["D"];
+        break;
+      case "C":
+        targetMode = replacements["C"];
         break;
       case "A":
         targetMode = replacements["A"];
@@ -252,6 +256,9 @@ export function changeChordsByTonal(mode: string, array: string[]) {
       case "Em":
         targetMode = replacements["Em"];
         break;
+      case "Am":
+        targetMode = replacements["Am"];
+        break;
       case "Bm":
         targetMode = replacements["Bm"];
         break;
@@ -284,6 +291,27 @@ export function changeChordsByTonal(mode: string, array: string[]) {
         break;
       case "Ebm":
         targetMode = replacements["Ebm"];
+        break;
+      case "C#":
+        targetMode = replacements["C#"];
+        break;
+      case "D#":
+        targetMode = replacements["D#"];
+        break;
+      case "G#":
+        targetMode = replacements["G#"];
+        break;
+      case "A#":
+        targetMode = replacements["A#"];
+        break;
+      case "Dbm":
+        targetMode = replacements["Dbm"];
+        break;
+      case "Gbm":
+        targetMode = replacements["Gbm"];
+        break;
+      case "Abm":
+        targetMode = replacements["Abm"];
         break;
       // Додайте інші можливі варіанти моду тут, якщо потрібно
       default:
