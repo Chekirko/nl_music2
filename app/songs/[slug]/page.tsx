@@ -2,7 +2,7 @@
 import { SongLink } from "@/components";
 import { Block, GettedSong } from "@/types";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { EditSongBlockDialog } from "@/components/EditSongBlockDialog";
@@ -15,7 +15,6 @@ import {
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Chord } from "tonal";
 import TonalChanger from "@/components/TonalChanger";
 
 import AlertDialogForSongPage from "@/components/AlertDialogForSongPage";
@@ -23,9 +22,9 @@ import {
   replaceBadChords,
   pureTranspose,
   changeChordsByTonal,
-  replaceBadTonals,
   insertDoubledTonals,
 } from "@/lib/chords";
+import EditTonalModal from "@/components/EditTonalModal";
 
 interface SingleSongPageProps {
   params: {
@@ -145,7 +144,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     return;
   };
 
-  const changeTonal = (interval: string, tonal: string) => {
+  const changeTonal = (interval: string, tonal: string, type?: string) => {
     if (!viewText || !viewChords) return;
     const updatedBlocks = renderedBlocks?.map((block) => {
       // Перевіряємо версію блоку
@@ -197,14 +196,19 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
     const updatedSong = {
       ...song!,
       blocks: updatedBlocks!,
+      ...(type === "save" && { key: tonal }), // Змінюємо тональність тільки якщо type === "save"
     };
+
     const newProgression = createProgression(tonal);
     setIsOriginTonal(false);
     setProgression(newProgression);
     setRenderedBlocks(updatedBlocks);
     setSong(updatedSong);
     setCurrentTonal(tonal);
-    // updateSong(updatedSong);
+
+    if (type === "save") {
+      updateSong(updatedSong);
+    }
   };
 
   const handleCopyBlocks = () => {
@@ -362,6 +366,21 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         </div>
         <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
         <p className="mt-5">Оригінальна тональність: {song?.key}</p>
+        {session.data?.user && session.data?.user.role === "admin" && (
+          <div className="sm:flex items-center flex-wrap gap-x-4">
+            <div>Змінити оригінальну тональність</div>
+            <EditTonalModal
+              type={"Вибери"}
+              question={"Вибери з переліку потрібну тональність"}
+              descr={""}
+              submitting={submitting}
+              changeTonal={changeTonal}
+              progression={progression}
+              currentTonal={currentTonal}
+            />
+          </div>
+        )}
+
         {song?.rythm && song.rythm !== "" && <p>Темп: {song.rythm}</p>}
         {song?.comment && song.comment !== "" && (
           <p>Коментар: {song.comment}</p>

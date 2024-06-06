@@ -8,9 +8,10 @@ function classNames(...classes: string[]) {
 
 interface Props {
   progression: string[] | undefined;
-  changeTonal: (interval: string, tonal: string) => void;
+  changeTonal: (interval: string, tonal: string, type?: string) => void;
   currentTonal: string;
   submitting: boolean;
+  type?: string;
 }
 
 export default function TonalChanger({
@@ -18,6 +19,7 @@ export default function TonalChanger({
   changeTonal,
   currentTonal,
   submitting,
+  type,
 }: Props) {
   // const createInterval = (ind: number) => {
   //   let interval;
@@ -58,7 +60,7 @@ export default function TonalChanger({
     const cleanedTonal = tonal.replace(/m/g, "");
     const cleanedCurrentTonal = currentTonal.replace(/m/g, "");
     const interval = createInterval(cleanedTonal, cleanedCurrentTonal);
-    changeTonal(interval!, tonal);
+    changeTonal(interval!, tonal, type);
   };
 
   return (

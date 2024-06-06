@@ -131,6 +131,16 @@ export interface SongLinkProps {
   id?: string;
 }
 
+export interface EditTonalModalProps {
+  type: string;
+  question: string;
+  descr: string;
+  submitting: boolean;
+  progression: string[] | undefined;
+  changeTonal: (interval: string, tonal: string, type?: string) => void;
+  currentTonal: string | undefined;
+}
+
 export interface AgreeModalProps {
   type: string;
   question: string;
