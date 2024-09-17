@@ -11,6 +11,9 @@ import {
   ChatBubbleBottomCenterTextIcon,
   DocumentTextIcon,
   CheckIcon,
+  ViewColumnsIcon,
+  TableCellsIcon,
+  DeviceTabletIcon,
 } from "@heroicons/react/24/outline";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast, ToastContainer } from "react-toastify";
@@ -39,6 +42,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
   const [viewText, setViewText] = useState(true);
   const [viewChords, setViewChords] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
+  const [twoColumns, setTwoColumns] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isOriginTonal, setIsOriginTonal] = useState(true);
   const [progression, setProgression] = useState<string[]>();
@@ -142,6 +146,10 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
       setViewText(true);
     }
     return;
+  };
+
+  const toggleColumns = () => {
+    setTwoColumns((prevState) => !prevState);
   };
 
   const changeTonal = (interval: string, tonal: string, type?: string) => {
@@ -355,6 +363,16 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           </button>
           <button
             className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
+            onClick={toggleColumns}
+          >
+            {twoColumns ? (
+              <DeviceTabletIcon className="w-8 h-8 text-gray-500" />
+            ) : (
+              <TableCellsIcon className="w-8 h-8 text-gray-500" />
+            )}
+          </button>
+          <button
+            className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center"
             onClick={handleCopyBlocks}
           >
             {isCopied ? (
@@ -422,46 +440,69 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
         />
 
         <div>
-          {!viewChords &&
-            viewText &&
-            renderedBlocks?.map((block, index) => {
-              return (
-                <div key={index} className="mb-6">
-                  <h3 className="font-semibold text-blue-900 mb-1 underline">
-                    {block.name}
-                  </h3>
-                  {block.lines.split("\n").map((line, i) => {
-                    return (
-                      <p key={i} className="ps-2">
-                        {line}
-                      </p>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          {!viewText &&
-            viewChords &&
-            renderedBlocks?.map((block, index) => {
-              return (
-                <div key={index} className="mb-6">
-                  <h3 className="font-semibold text-blue-900 mb-1 underline">
-                    {block.name}
-                  </h3>
-                  {block.lines.split("\n").map((line, i) => {
-                    return (
-                      <p key={i} className="blue_gradient font-semibold ps-2">
-                        {line}
-                      </p>
-                    );
-                  })}
-                </div>
-              );
-            })}
+          <div
+            className={`columns-1 ${twoColumns ? "md:columns-2 gap-4" : ""}`}
+          >
+            {" "}
+            {!viewChords &&
+              viewText &&
+              renderedBlocks?.map((block, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="mb-6 relative break-inside-avoid border border-blue-500 rounded-md p-4 w-fit bg-white"
+                  >
+                    <h3 className="font-semibold text-blue-900 mb-1 underline">
+                      {block.name}
+                    </h3>
+                    {block.lines.split("\n").map((line, i) => {
+                      return (
+                        <p key={i} className="ps-2">
+                          {line}
+                        </p>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+          </div>
+
+          <div
+            className={`columns-1 ${twoColumns ? "md:columns-2 gap-4" : ""}`}
+          >
+            {" "}
+            {!viewText &&
+              viewChords &&
+              renderedBlocks?.map((block, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="mb-6 relative break-inside-avoid border border-blue-500 rounded-md p-4 w-fit bg-white"
+                  >
+                    <h3 className="font-semibold text-blue-900 mb-1 underline">
+                      {block.name}
+                    </h3>
+                    {block.lines.split("\n").map((line, i) => {
+                      return (
+                        <p key={i} className="blue_gradient font-semibold ps-2">
+                          {line}
+                        </p>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+          </div>
 
           <Droppable droppableId="blocks">
             {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps}>
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className={`columns-1 ${
+                  twoColumns ? "md:columns-2 gap-4" : ""
+                }`}
+              >
                 {viewChords &&
                   viewText &&
                   renderedBlocks?.map((block, index) => {
@@ -504,7 +545,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="mb-6 relative border border-blue-500 rounded-md p-4 w-fit bg-white"
+                            className="mb-6 relative break-inside-avoid border border-blue-500 rounded-md p-4 w-fit bg-white"
                           >
                             <div className="flex justify-between gap-10 mb-3">
                               <h3 className="font-semibold text-blue-900 underline">
