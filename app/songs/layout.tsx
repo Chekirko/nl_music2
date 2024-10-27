@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Список пісень |  Нова пісня",
+  description: "Всі пісні, що доступні в додатку",
+};
+
 export default function SongsLayout({
   children,
 }: {

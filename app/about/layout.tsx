@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Про нас  |  Нова пісня",
+  description: "Інформація про учасників гурту прославлення церкви Нове життя",
+};
+
 export default function AboutLayout({
   children,
 }: {

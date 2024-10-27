@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Служіння  |  Нова пісня",
+  description: "Інформація про списки служінь, що проводяться в Новому житті",
+};
+
 export default function EventsLayout({
   children,
 }: {
