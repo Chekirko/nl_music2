@@ -29,6 +29,7 @@
     "mongoose": "^8.0.0",
     "next": "latest",
     "next-auth": "^4.24.5",
+    "next-sitemap": "^4.2.3",
     "react": "latest",
     "react-day-picker": "^8.9.1",
     "react-dom": "latest",

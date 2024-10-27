@@ -29,7 +29,7 @@ import {
 } from "@/lib/chords";
 import EditTonalModal from "@/components/EditTonalModal";
 
-interface SingleSongPageProps {
+export interface SingleSongPageProps {
   params: {
     slug: string;
   };
