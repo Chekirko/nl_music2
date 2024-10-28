@@ -15,8 +15,8 @@ const TagPage = () => {
       const response = await fetch("/api/songs", {
         next: { revalidate: 60 },
       });
-      const data = await response.json();
-      setSongs(data);
+      const { songs } = await response.json();
+      setSongs(songs);
     };
 
     fetchSongs();
@@ -29,7 +29,7 @@ const TagPage = () => {
     : null;
 
   return (
-    <div className="padding-x">
+    <div className="padding-x max-w-[1600px] mx-auto">
       <section className="w-full max-w-full flex-start flex-col">
         <h1 className="head_text text-left">
           <span className="blue_gradient">За тегом</span>

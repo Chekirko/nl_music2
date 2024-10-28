@@ -49,8 +49,8 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
       const response = await fetch("/api/songs", {
         next: { revalidate: 60 },
       });
-      const data = await response.json();
-      setSongs(data);
+      const { songs } = await response.json();
+      setSongs(songs);
     };
 
     const fetchEvent = async () => {
@@ -165,7 +165,7 @@ const SingleEventPage = ({ params }: SingleEventPageProps) => {
   };
 
   return (
-    <section className="padding-x py-5">
+    <section className="padding-x py-5 max-w-[1600px] mx-auto">
       <h1 className="head_text  text-primary-600">{event?.title}</h1>
       <div className="flex flex-col items-start gap-4 mt-8">
         <Link

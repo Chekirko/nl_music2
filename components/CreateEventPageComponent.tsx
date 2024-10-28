@@ -18,8 +18,8 @@ const CreateEventPageComponent = () => {
     const response = await fetch("/api/songs", {
       next: { revalidate: 60 },
     });
-    const data = await response.json();
-    setSongs(data);
+    const { songs } = await response.json();
+    setSongs(songs);
   };
 
   useEffect(() => {

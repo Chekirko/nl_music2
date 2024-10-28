@@ -43,7 +43,7 @@ const CreateSong = () => {
   };
 
   return (
-    <div className="padding-x">
+    <div className="padding-x max-w-[1600px] mx-auto">
       <Form
         type="Додай"
         song={song}

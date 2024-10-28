@@ -346,7 +346,7 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="padding-x">
+      <div className="padding-x max-w-[1600px] mx-auto">
         <h1 className="head_text  text-blue-600">{song?.title}</h1>
         <div className="flex flex-start gap-8 mt-5">
           <button

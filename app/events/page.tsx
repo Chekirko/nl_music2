@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 const EventsPage = () => {
   return (
-    <div className="padding-x mt-16">
+    <div className="padding-x mt-16 max-w-[1600px] mx-auto min-h-screen">
       <div className="flex justify-end">
         <Link
           href="/events/create-new"
