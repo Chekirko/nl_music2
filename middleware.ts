@@ -16,7 +16,22 @@ export default withAuth(
     ) {
       return NextResponse.rewrite(new URL("/denied", req.url));
     }
+
+    if (
+      req.nextUrl.pathname.startsWith("/events/create-new") &&
+      req.nextauth.token?.role !== "admin"
+    ) {
+      return NextResponse.rewrite(new URL("/denied", req.url));
+    }
+
+    if (
+      req.nextUrl.pathname.startsWith("/events/update-event") &&
+      req.nextauth.token?.role !== "admin"
+    ) {
+      return NextResponse.rewrite(new URL("/denied", req.url));
+    }
   },
+
   {
     callbacks: {
       authorized: ({ token }) => !!token,
