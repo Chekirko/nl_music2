@@ -7,7 +7,7 @@ import { defaultEvent } from "@/constants";
 import { useRouter } from "next/navigation";
 import { DatePickerDemo } from "@/components/ui/datePickerDemo";
 import Link from "next/link";
-import EventFormBlock from "./EventFormBlock";
+import EventFormBlock from "@/components/EventFormBlock";
 
 const CreateEventPageComponent = () => {
   const router = useRouter();

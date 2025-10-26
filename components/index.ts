@@ -15,8 +15,8 @@ import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
-import SearchTitleForEvent from "../archive/components/SearchTitleForEvent";
-import EventFormBlock from "../archive/components/EventFormBlock";
+import SearchTitleForEvent from "./SearchTitleForEvent";
+import EventFormBlock from "./EventFormBlock";
 import AgreeModal from "./AgreeModal";
 import { YearAccordion } from "./YearAccordion";
 import EventsPageComponent from "./EventsPageComponent";
@@ -43,4 +43,6 @@ export {
   Providers,
   YearAccordion,
   EventsPageComponent,
+  SearchTitleForEvent,
+  EventFormBlock,
 };
