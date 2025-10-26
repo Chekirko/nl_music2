@@ -1,5 +1,5 @@
 import { EventFormBlockProps } from "@/types";
-import { SearchTitleForEvent } from ".";
+import SearchTitleForEvent from "./SearchTitleForEvent";
 
 const EventFormBlock = ({
   songs,

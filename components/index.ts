@@ -15,12 +15,12 @@ import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
-import SearchTitleForEvent from "./SearchTitleForEvent";
-import EventFormBlock from "./EventFormBlock";
+import SearchTitleForEvent from "../archive/components/SearchTitleForEvent";
+import EventFormBlock from "../archive/components/EventFormBlock";
 import AgreeModal from "./AgreeModal";
 import { YearAccordion } from "./YearAccordion";
 import EventsPageComponent from "./EventsPageComponent";
-import CreateEventPageComponent from "./CreateEventPageComponent";
+import CreateEventPageComponent from "../archive/components/CreateEventPageComponent";
 
 export {
   AgreeModal,
@@ -41,9 +41,6 @@ export {
   NavLinks,
   AuthLinks,
   Providers,
-  SearchTitleForEvent,
-  EventFormBlock,
   YearAccordion,
   EventsPageComponent,
-  CreateEventPageComponent,
 };

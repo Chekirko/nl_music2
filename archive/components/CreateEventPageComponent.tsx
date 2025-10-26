@@ -2,11 +2,12 @@
 
 import { GettedSong, OurEvent } from "@/types";
 import { FormEvent, useEffect, useState } from "react";
-import { AgreeModal, EventFormBlock } from "@/components";
+import { AgreeModal } from "@/components";
 import { defaultEvent } from "@/constants";
 import { useRouter } from "next/navigation";
 import { DatePickerDemo } from "@/components/ui/datePickerDemo";
 import Link from "next/link";
+import EventFormBlock from "./EventFormBlock";
 
 const CreateEventPageComponent = () => {
   const router = useRouter();
