@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthLinks, NavDropdownMenu, NavLinks } from ".";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { signOut, useSession } from "next-auth/react";
@@ -10,11 +10,31 @@ import { signOut, useSession } from "next-auth/react";
 const Navbar = () => {
   const session = useSession();
   const [menuIcon, setMenuIcon] = useState(false);
+  const [pinned, setPinned] = useState<{ id: string; title: string } | null>(null);
 
   const handleSmallerScreensNavigation = () => {
     setMenuIcon(!menuIcon);
     console.log("click");
   };
+
+  useEffect(() => {
+    const read = () => {
+      try {
+        const raw = localStorage.getItem("pinnedEvent");
+        setPinned(raw ? JSON.parse(raw) : null);
+      } catch {
+        setPinned(null);
+      }
+    };
+    read();
+    const onChange = () => read();
+    window.addEventListener("storage", onChange);
+    window.addEventListener("pinned-event-changed", onChange as any);
+    return () => {
+      window.removeEventListener("storage", onChange);
+      window.removeEventListener("pinned-event-changed", onChange as any);
+    };
+  }, []);
 
   return (
     <header className="w-full bg-gray-900">
@@ -36,8 +56,27 @@ const Navbar = () => {
           </span>
         </Link>
 
-        <div className="hidden lg:block">
+        <div className="hidden lg:flex items-center gap-4">
           <NavLinks />
+          {pinned && (
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/events/${pinned.id}`}
+                className="max-sm:hidden rounded-full border-2 border-yellow-500 text-yellow-200 hover:text-white hover:bg-yellow-600/20 px-4 py-1.5 text-sm font-semibold"
+                title="Перейти до закріпленої події"
+              >
+                📌 {pinned.title}
+              </Link>
+              <button
+                onClick={() => { localStorage.removeItem('pinnedEvent'); setPinned(null); window.dispatchEvent(new CustomEvent('pinned-event-changed')); }}
+                className="text-yellow-400 hover:text-white"
+                aria-label="Відкріпити подію"
+                title="Відкріпити подію"
+              >
+                ×
+              </button>
+            </div>
+          )}
         </div>
 
         {session?.data ? (
@@ -77,6 +116,24 @@ const Navbar = () => {
           }
         >
           <div className="w-full flex flex-col">
+            {pinned && (
+              <div className="self-center mb-6 flex items-center gap-2">
+                <Link
+                  href={`/events/${pinned.id}`}
+                  onClick={handleSmallerScreensNavigation}
+                  className="rounded-full border-2 border-yellow-500 text-yellow-200 hover:text-white hover:bg-yellow-600/20 px-4 py-1.5 text-base font-semibold"
+                >
+                  📌 {pinned.title}
+                </Link>
+                <button
+                  onClick={() => { localStorage.removeItem('pinnedEvent'); setPinned(null); window.dispatchEvent(new CustomEvent('pinned-event-changed')); }}
+                  className="text-yellow-400 hover:text-white"
+                  aria-label="Відкріпити подію"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <NavLinks handleClick={handleSmallerScreensNavigation} />
             {/* <AuthLinks handleClick={handleSmallerScreensNavigation} /> */}
 

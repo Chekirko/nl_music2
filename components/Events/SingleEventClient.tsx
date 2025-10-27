@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { GettedSong, OurEvent } from "@/types";
 import Link from "next/link";
@@ -40,6 +40,7 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
   const [songs, setSongs] = useState<GettedSong[]>(initialSongs);
   const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const session = useSession();
   const router = useRouter();
   const path = usePathname();
@@ -47,7 +48,34 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
   useEffect(() => {
     setEvent(initialEvent);
     setSongs(initialSongs);
+    try {
+      const raw = localStorage.getItem("pinnedEvent");
+      const data = raw ? JSON.parse(raw) : null;
+      setPinned(!!data && data.id === (initialEvent as any)._id);
+    } catch {}
   }, [initialEvent, initialSongs]);
+
+  useEffect(() => {
+    const readPinned = () => {
+      try {
+        const raw = localStorage.getItem("pinnedEvent");
+        const data = raw ? JSON.parse(raw) : null;
+        setPinned(!!data && data.id === (initialEvent as any)._id);
+      } catch {
+        setPinned(false);
+      }
+    };
+
+    readPinned();
+    const onStorage = () => readPinned();
+    const onPinnedChanged = () => readPinned();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("pinned-event-changed", onPinnedChanged as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("pinned-event-changed", onPinnedChanged as EventListener);
+    };
+  }, [initialEvent]);
 
   const toIso = (d?: Date) => (d ? new Date(d).toISOString() : undefined);
 
@@ -81,6 +109,29 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
       toast.error("Упс! Щось пішло не так...");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const emitPinnedChanged = () => {
+    try {
+      window.dispatchEvent(new CustomEvent("pinned-event-changed"));
+    } catch {}
+  };
+
+  const handlePinToggle = () => {
+    const id = (event as any)._id;
+    const title = event.title;
+    try {
+      if (pinned) {
+        localStorage.removeItem("pinnedEvent");
+        setPinned(false);
+      } else {
+        localStorage.setItem("pinnedEvent", JSON.stringify({ id, title }));
+        setPinned(true);
+      }
+      emitPinnedChanged();
+    } catch (e) {
+      console.error("Failed to update pinned event", e);
     }
   };
 
@@ -188,7 +239,7 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Видалити пісню?</AlertDialogTitle>
                               <AlertDialogDescription className="font-medium">
-                                Дію не можна скасувати. Пісня буде видалена зі списку.
+                                Дію не можна скасувати. Пісню буде видалено зі списку.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -209,6 +260,22 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
           )}
         </Droppable>
       </DragDropContext>
+
+      {/* Small screens pin button below the list */}
+      <div className="lg:hidden mt-6">
+        <button
+          type="button"
+          onClick={handlePinToggle}
+          className={`w-full rounded-full px-5 py-3 text-sm font-semibold focus:outline-none border-2 transition-colors ${
+            pinned
+              ? "bg-yellow-500 border-yellow-600 hover:bg-yellow-600 text-white"
+              : "bg-white border-blue-600 text-blue-700 hover:bg-blue-50"
+          }`}
+          aria-pressed={pinned}
+        >
+          {pinned ? "Відкріпити" : "Закріпити"}
+        </button>
+      </div>
 
       {session.data?.user?.role === "admin" && (
         <>
@@ -287,10 +354,24 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
       ) : (
         ""
       )}
+
       <ToastContainer position="bottom-right" autoClose={1500} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+
+      <button
+        type="button"
+        onClick={handlePinToggle}
+        className={`hidden lg:inline-flex fixed bottom-6 right-6 z-20 shadow-lg rounded-full px-5 py-3 text-sm font-semibold focus:outline-none border-2 transition-colors ${
+          pinned
+            ? "bg-yellow-500 border-yellow-600 hover:bg-yellow-600 text-white"
+            : "bg-white border-blue-600 text-blue-700 hover:bg-blue-50"
+        }`}
+        aria-pressed={pinned}
+        title={pinned ? "Відкріпити подію" : "Закріпити подію"}
+      >
+        {pinned ? "Відкріпити" : "Закріпити"}
+      </button>
     </section>
   );
 };
 
 export default SingleEventClient;
-
