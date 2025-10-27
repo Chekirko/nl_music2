@@ -4,7 +4,11 @@ import Song from "@/models/song";
 import Event from "@/models/event";
 import { connectToDB } from "@/utils/database";
 
-export async function getSongs(filter?: string, page: number = 1) {
+export async function getSongs(
+  filter?: string,
+  page: number = 1,
+  searchQuery?: string
+) {
   try {
     const limit = 30;
     const skip = (page - 1) * limit;
@@ -14,9 +18,14 @@ export async function getSongs(filter?: string, page: number = 1) {
     let songs;
     let isNext = false;
 
+    // Базовий search query для всіх фільтрів
+    const searchFilter = searchQuery
+      ? { title: { $regex: searchQuery, $options: "i" } }
+      : {};
+
     if (!filter || filter === "all") {
-      const totalSongs = await Song.countDocuments();
-      songs = await Song.find({}).lean();
+      const totalSongs = await Song.countDocuments(searchFilter);
+      songs = await Song.find(searchFilter).lean();
       isNext = totalSongs > skip + limit;
     } else if (filter === "pop") {
       const popularSongs = await Event.aggregate([
@@ -28,7 +37,10 @@ export async function getSongs(filter?: string, page: number = 1) {
       ]);
 
       const songIds = popularSongs.map((song) => song._id);
-      songs = await Song.find({ _id: { $in: songIds } }).lean();
+      songs = await Song.find({
+        _id: { $in: songIds },
+        ...searchFilter,
+      }).lean();
 
       const totalPopularSongs = await Event.aggregate([
         { $unwind: "$songs" },
@@ -51,10 +63,10 @@ export async function getSongs(filter?: string, page: number = 1) {
         songsWithCount.map((song) => [song._id.toString(), song.count])
       );
 
-      const allSongs = await Song.find({}).lean();
+      const allSongs = await Song.find(searchFilter).lean();
 
-      const neverUsedSongs: any = [];
-      const rarelyUsedSongs: any = [];
+      const neverUsedSongs: any[] = [];
+      const rarelyUsedSongs: any[] = [];
 
       allSongs.forEach((song: any) => {
         const count = songCountMap.get(song._id.toString()) || 0;
@@ -81,7 +93,6 @@ export async function getSongs(filter?: string, page: number = 1) {
       throw new Error("Invalid filter");
     }
 
-    // Конвертуємо MongoDB ObjectId в string для серіалізації
     const serializedSongs = JSON.parse(JSON.stringify(songs));
 
     return {

@@ -1,7 +1,7 @@
 import Event from "@/models/event";
 import { connectToDB } from "@/utils/database";
 import mongoose from "mongoose";
-import { EventSong } from "@/types";
+import { revalidatePath } from "next/cache";
 
 export const PUT = async (req: Request, res: Response) => {
   const { title, songs, date, _id, live, playList } = await req.json();
@@ -16,18 +16,25 @@ export const PUT = async (req: Request, res: Response) => {
         title,
         live,
         playList,
-        date: new Date(date),
+        date: date ? new Date(date) : undefined,
         songs: songIds.map(
           (songId: mongoose.Types.ObjectId, index: number) => ({
             song: songId,
             comment: songs[index].comment,
-            ind: songs[index].ind,
+            ind: String(index),
             title: songs[index].title,
           })
         ),
       },
       { new: true, runValidators: true }
     );
+
+    // Invalidate relevant pages so server components refetch fresh data
+    try {
+      revalidatePath("/events");
+      revalidatePath(`/events/${_id}`);
+      revalidatePath("/events/update-event");
+    } catch {}
 
     return new Response(JSON.stringify(updatedEvent), { status: 201 });
   } catch (error) {

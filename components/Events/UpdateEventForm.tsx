@@ -1,48 +1,60 @@
 "use client";
 
-import { GettedSong } from "@/types";
-import { defaultEvent } from "@/constants";
+import { GettedSong, OurEvent } from "@/types";
 import { FormEvent, useEffect, useState } from "react";
-import { useEventStore } from "@/store/eventStore";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AgreeModal } from "@/components";
 import { DatePickerDemo } from "@/components/ui/datePickerDemo";
 import { SongCombobox } from "@/components/Events/SongCombobox";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { createEvent } from "@/lib/actions/eventActions";
+import { useEventStore } from "@/store/eventStore";
+import { updateEvent as updateEventAction } from "@/lib/actions/eventActions";
 
 interface Props {
   initialSongs: GettedSong[];
 }
 
-export const CreateEventForm = ({ initialSongs }: Props) => {
+import { useSearchParams } from "next/navigation";
+
+export const UpdateEventForm = ({ initialSongs }: Props) => {
   const router = useRouter();
-  const { event, setEvent, setSongs, addSongSlot, removeSongSlot, reset } =
-    useEventStore();
+  const searchParams = useSearchParams();
+  const {
+    event,
+    setEvent,
+    setSongs,
+    addSongSlot,
+    removeSongSlot,
+    reset,
+  } = useEventStore();
+
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    reset();
-    // Ініціалізуємо форму піснями з константи, а не попереднім станом стора
-    setEvent({
-      title: "",
-      live: "",
-      playList: "",
-      date: new Date(),
-      songs: defaultEvent.songs.map((s, i) => ({
-        ...s,
-        song: String(i),
-        ind: String(i),
-        title: "",
-      })),
-    });
+    const controller = new AbortController();
+    const id = searchParams.get("id") || "";
 
-    // Доступні пісні для комбобоксу беремо з пропса initialSongs
+    reset();
     setSongs(initialSongs);
 
-    // На розмонтуванні очищаємо стор, щоб не тягнувся у наступні сторінки
-    return () => reset();
-  }, [initialSongs, setSongs, reset, setEvent]);
+    const fetchEvent = async () => {
+      try {
+        const res = await fetch(`/api/events/single?id=${id}`, { cache: 'no-store', signal: controller.signal });
+        const incoming = await res.json();
+        setEvent({
+          title: incoming.title,
+          live: incoming.live,
+          playList: incoming.playList || "",
+          date: incoming.date ? new Date(incoming.date) : undefined,
+          songs: incoming.songs || [],
+          _id: (incoming as any)._id,
+        });
+      } catch {}
+    };
+
+    fetchEvent();
+    return () => { controller.abort(); reset(); };
+  }, [initialSongs, setSongs, setEvent, reset, searchParams]);
 
   const handleDateChange = (selectedDate: Date | undefined) => {
     setEvent({ ...event, date: selectedDate || undefined });
@@ -54,7 +66,8 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
 
     const utcDate = event.date ? new Date(event.date).toISOString() : undefined;
 
-    const result = await createEvent({
+    const result = await updateEventAction({
+      _id: (event as any)._id,
       title: event.title,
       live: event.live,
       playList: event.playList || "",
@@ -65,8 +78,9 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
     setSubmitting(false);
 
     if (result.success) {
+      const id = (event as any)._id;
       reset();
-      router.push("/events");
+      router.push(`/events/${id}`);
     }
   };
 
@@ -77,13 +91,12 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
     >
       <label>
         <span className="font-satoshi font-semibold text-base text-gray-700">
-          Тип служіння
-        </span>{" "}
-        <span className="bg-red-900 w-4 h-4"></span>
+          Назва події
+        </span>
         <input
           value={event.title}
           onChange={(e) => setEvent({ ...event, title: e.target.value })}
-          placeholder="Наприклад: Неділя, ранкове або Молитовне"
+          placeholder="Наприклад: Неділя, ранкове служіння"
           className="form_input"
           required
         />
@@ -91,36 +104,36 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
 
       <label>
         <span className="font-satoshi font-semibold text-base text-gray-700">
-          Посилання на наше служіння
+          Посилання на трансляцію
         </span>
         <input
           value={event.live}
           onChange={(e) => setEvent({ ...event, live: e.target.value })}
-          placeholder="Встав посилання"
+          placeholder="�'�?�'���? ���?�?��>���?�?�?"
           className="form_input"
         />
       </label>
 
       <label>
         <span className="font-satoshi font-semibold text-base text-gray-700">
-          Посилання на плейлист для прослуховування
+          Плейлист (YouTube embed)
         </span>
         <input
           value={event.playList}
           onChange={(e) => setEvent({ ...event, playList: e.target.value })}
-          placeholder="Встав посилання"
+          placeholder="�'�?�'���? ���?�?��>���?�?�?"
           className="form_input"
         />
       </label>
 
-      <DatePickerDemo onDateChange={handleDateChange} />
+      <DatePickerDemo onDateChange={handleDateChange} existedDate={event.date} />
 
       {event.songs.map((song, index) => (
         <div key={index} className="flex gap-2 items-end">
           <div className="flex-1">
             <label>
               <span className="font-satoshi font-semibold text-base text-gray-700">
-                Пісня {index}
+                Трек {index}
               </span>
               <SongCombobox index={index} />
             </label>
@@ -142,21 +155,21 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
         onClick={addSongSlot}
         className="text-blue-600 hover:text-blue-800 text-sm font-medium"
       >
-        + Додати пісню
+        + Додати трек
       </button>
 
       <div className="flex-end mx-3 mb-5 gap-4">
         <Link
-          href="/events"
+          href={`/events/${(event as any)._id}`}
           className="text-gray-500 hover:text-white text-sm font-medium hover:bg-blue-800 px-5 py-1.5 rounded-full"
         >
           Cancel
         </Link>
 
         <AgreeModal
-          type={"Створи"}
-          question={"Впевнений?"}
-          descr={"Ти дійсно хочеш створити такий список пісень?"}
+          type={"Оновити"}
+          question={"Підтвердити?"}
+          descr={"Після підтвердження подію буде оновлено"}
           submitting={submitting}
           handleSubmit={handleSubmit}
         />
@@ -164,3 +177,6 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
     </form>
   );
 };
+
+export default UpdateEventForm;
+

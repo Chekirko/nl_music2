@@ -10,6 +10,7 @@ interface EventStore {
   clearSong: (index: number) => void;
   addSongSlot: () => void;
   removeSongSlot: (index: number) => void;
+  reset: () => void;
 }
 
 export const useEventStore = create<EventStore>((set) => ({
@@ -19,9 +20,9 @@ export const useEventStore = create<EventStore>((set) => ({
     playList: "",
     date: new Date(),
     songs: [
+      { song: "0", comment: "", ind: "0", title: "" },
       { song: "1", comment: "", ind: "1", title: "" },
       { song: "2", comment: "", ind: "2", title: "" },
-      { song: "3", comment: "", ind: "3", title: "" },
     ],
   },
   songs: [],
@@ -46,7 +47,7 @@ export const useEventStore = create<EventStore>((set) => ({
       const updatedSongs = [...state.event.songs];
       updatedSongs[index] = {
         ...updatedSongs[index],
-        song: `${index + 1}`,
+        song: `${index}`,
         title: "",
       };
       return { event: { ...state.event, songs: updatedSongs } };
@@ -54,7 +55,7 @@ export const useEventStore = create<EventStore>((set) => ({
 
   addSongSlot: () =>
     set((state) => {
-      const newIndex = state.event.songs.length + 1;
+      const newIndex = state.event.songs.length;
       const newSong = {
         song: `${newIndex}`,
         comment: "",
@@ -73,5 +74,20 @@ export const useEventStore = create<EventStore>((set) => ({
     set((state) => {
       const updatedSongs = state.event.songs.filter((_, i) => i !== index);
       return { event: { ...state.event, songs: updatedSongs } };
+    }),
+  reset: () =>
+    set({
+      event: {
+        title: "",
+        live: "",
+        playList: "",
+        date: new Date(),
+        songs: [
+          { song: "1", comment: "", ind: "1", title: "" },
+          { song: "2", comment: "", ind: "2", title: "" },
+          { song: "3", comment: "", ind: "3", title: "" },
+        ],
+      },
+      songs: [],
     }),
 }));

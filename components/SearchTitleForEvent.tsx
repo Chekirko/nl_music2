@@ -46,7 +46,7 @@ const SearchTitleForEvent = ({
       const updatedEventSongs = [...event.songs];
       updatedEventSongs[index] = {
         ...updatedEventSongs[index],
-        song: `${index + 1}`,
+        song: `${index}`,
         title: "",
       };
       const updatedEvent = { ...event, songs: updatedEventSongs };
