@@ -2,8 +2,16 @@ import CreateSongLink from "@/components/CreateSongLink";
 import SongFilter from "@/components/SongFilter";
 import SongsFeed from "@/components/SongsFeed";
 import { SongFilters } from "@/constants/filters";
+import { getSongs } from "@/lib/actions/songActions";
 
-const SongsPage = () => {
+interface PageProps {
+  searchParams: { filter?: string; page?: string };
+}
+
+const SongsPage = async ({ searchParams }: PageProps) => {
+  const filter = searchParams.filter || "all";
+  const page = searchParams.page ? parseInt(searchParams.page, 10) : 1;
+  const { songs, isNext } = await getSongs(filter, page);
   return (
     <>
       <div className="padding-x max-w-[1600px] mx-auto">
@@ -19,7 +27,7 @@ const SongsPage = () => {
           </div>
 
           <SongFilter filters={SongFilters} otherClasses="mb-10" />
-          <SongsFeed />
+          <SongsFeed songs={songs} isNext={isNext} filter={filter} page={page} />
         </section>
       </div>
     </>
