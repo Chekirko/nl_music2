@@ -110,3 +110,15 @@ export async function deleteEvent(eventId: number) {
     return { success: false, error: "Failed to delete event" };
   }
 }
+
+export async function getAllEvents() {
+  try {
+    await connectToDB();
+    const events = await Event.find({}).lean();
+    const serialized = JSON.parse(JSON.stringify(events));
+    return serialized;
+  } catch (error) {
+    console.error("Failed to fetch events:", error);
+    throw new Error("Failed to fetch events");
+  }
+}
