@@ -5,6 +5,12 @@ import { GoogleGenAI } from "@google/genai";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/configs/auth";
 
+// Ensure Node.js runtime on Vercel (avoids Edge 5s timeout)
+export const runtime = "nodejs";
+// Allow longer processing (Vercel Pro up to 60s; safely ignored on plans that don't support)
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 const buildPrompt = (url: string) => {
@@ -33,7 +39,7 @@ Rules:
 - Detect the actual musical key; if site shows wrong key, fix it.
 - Ensure chords are placed on their own lines, not inline with lyrics.
 - If there is no song on the page, return this exact JSON: {"status":"not_found","reason":"No song detected"}
-- Video:  important!!! explicitly search the page for an embedded player. Prefer an <iframe> with src containing "youtube.com/embed/...". If only YouTube links (watch?v=... / youtu.be/...) are present, CONVERT to "https://www.youtube.com/embed/<id>". Include "video" only if it actually exists on the page; do NOT fabricate.
+- Video:  important!!! Проведи ретельне дослідження сторінки на наявність вбудованого відео з Ютуб. Це дуже важливо. explicitly search the page for an embedded player. Prefer an <iframe> with src containing "youtube.com/embed/...". If only YouTube links (watch?v=... / youtu.be/...) are present, CONVERT to "https://www.youtube.com/embed/<id>". Include "video" only if it actually exists on the page; do NOT fabricate.
 
 Important:
 - You MUST retrieve and read the content of the provided URL using the urlContext tool.
@@ -80,19 +86,15 @@ export const POST = async (req: NextRequest) => {
       if (!u.protocol || !u.host) throw new Error("bad");
     } catch {
       return new Response(
-        JSON.stringify({ error: "РџРѕСЃРёР»Р°РЅРЅСЏ РЅРµРґС–Р№СЃРЅРµ" }),
-        {
-          status: 400,
-        }
+        JSON.stringify({ error: "Посилання недійсне" }),
+        { status: 400 }
       );
     }
 
     const parsed = await callGemini(url);
     if (parsed?.status === "not_found") {
       return new Response(
-        JSON.stringify({
-          error: "РџС–СЃРЅСЋ РЅРµ Р·РЅР°Р№РґРµРЅРѕ РЅР° СЃС‚РѕСЂС–РЅС†С–",
-        }),
+        JSON.stringify({ error: "Пісню не знайдено на сторінці" }),
         { status: 422 }
       );
     }
@@ -100,10 +102,7 @@ export const POST = async (req: NextRequest) => {
     // Minimal validation
     if (!parsed?.title || !parsed?.key || !Array.isArray(parsed?.blocks)) {
       return new Response(
-        JSON.stringify({
-          error:
-            "РќРµРїСЂР°РІРёР»СЊРЅРёР№ С„РѕСЂРјР°С‚ РІС–РґРїРѕРІС–РґС– РЁР†",
-        }),
+        JSON.stringify({ error: "Неправильний формат відповіді ШІ" }),
         { status: 422 }
       );
     }
@@ -119,9 +118,7 @@ export const POST = async (req: NextRequest) => {
   } catch (err: any) {
     console.error("INGEST_ERROR", err);
     return new Response(
-      JSON.stringify({
-        error: "РќРµ РІРґР°Р»РѕСЃСЏ СЃС‚РІРѕСЂРёС‚Рё РїС–СЃРЅСЋ",
-      }),
+      JSON.stringify({ error: "Не вдалося створити пісню" }),
       { status: 500 }
     );
   }
