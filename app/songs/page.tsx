@@ -1,4 +1,5 @@
 import CreateSongLink from "@/components/CreateSongLink";
+import AddSongByLinkLink from "@/components/AddSongByLinkLink";
 import SongFilter from "@/components/SongFilter";
 import SongsFeed from "@/components/SongsFeed";
 import { SongFilters } from "@/constants/filters";
@@ -22,8 +23,9 @@ const SongsPage = async ({ searchParams }: PageProps) => {
           <p className="desc text-left max-w-md mb-12 lg:mb-16">
             Пісні, які співаються в церкві "Нове життя" м. Борислав:
           </p>
-          <div className="self-end mb-8">
+          <div className="self-end mb-8 flex gap-3">
             <CreateSongLink />
+            <AddSongByLinkLink />
           </div>
 
           <SongFilter filters={SongFilters} otherClasses="mb-10" />

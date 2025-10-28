@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/genai": "^1.27.0",
     "@headlessui/react": "^1.7.17",
     "@hello-pangea/dnd": "^16.5.0",
     "@heroicons/react": "^2.0.18",

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { SongLink } from "@/components";
 import { Block, GettedSong } from "@/types";
 import Link from "next/link";
@@ -89,6 +89,26 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
 
     fetchSong();
   }, []);
+
+  const deleteSong = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/songs/delete", {
+        method: "DELETE",
+        body: JSON.stringify({ _id: params.slug }),
+      });
+      if (response.ok) {
+        toast.success("Пісню видалено");
+        router.push("/songs");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Не вдалося видалити пісню");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const sortBlocks = () => {
     const blocks = song?.blocks.filter((block: Block) => block.name !== "");
@@ -618,6 +638,19 @@ const SingleSongPage = ({ params }: SingleSongPageProps) => {
           `}</style>
         </div>
         <div></div>
+        {session.data?.user?.role === "admin" && (
+          <div className="mt-6">
+            <button
+              onClick={deleteSong}
+              disabled={submitting}
+              className={`rounded-full px-5 py-1.5 text-sm font-medium text-white ${
+                submitting ? "bg-gray-400" : "bg-red-600 hover:bg-red-700"
+              }`}
+            >
+              Видалити пісню
+            </button>
+          </div>
+        )}
         <ToastContainer
           position="bottom-right"
           autoClose={3000} // Закрити автоматично через 3 секунди
