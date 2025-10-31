@@ -1,5 +1,6 @@
 import type { Metadata, ResolvingMetadata } from "next";
-import { SingleSongPageProps } from "./page";
+
+type SingleSongPageProps = { params: { slug: string } };
 export async function generateMetadata(
   { params }: SingleSongPageProps,
   parent: ResolvingMetadata
