@@ -29,15 +29,13 @@ export default function AgreeModal({
 
   return (
     <>
-      <div className="inset-0 flex items-center justify-center">
-        <button
-          type="button"
-          onClick={openModal}
-          className="rounded-full  bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
-        >
-          {type}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={openModal}
+        className="rounded-full bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
+      >
+        {type}
+      </button>
 
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>

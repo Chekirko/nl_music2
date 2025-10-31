@@ -3,22 +3,23 @@
 import Song from "@/models/song";
 import Event from "@/models/event";
 import { connectToDB } from "@/utils/database";
+import { revalidatePath } from "next/cache";
+import type { GettedSong } from "@/types";
 
 export async function getSongs(
   filter?: string,
   page: number = 1,
   searchQuery?: string
-) {
+): Promise<{ songs: GettedSong[]; isNext: boolean }> {
   try {
     const limit = 30;
     const skip = (page - 1) * limit;
 
     await connectToDB();
 
-    let songs;
+    let songs: any[] = [];
     let isNext = false;
 
-    // Базовий search query для всіх фільтрів
     const searchFilter = searchQuery
       ? { title: { $regex: searchQuery, $options: "i" } }
       : {};
@@ -36,55 +37,43 @@ export async function getSongs(
         { $limit: limit },
       ]);
 
-      const songIds = popularSongs.map((song) => song._id);
-      songs = await Song.find({
-        _id: { $in: songIds },
-        ...searchFilter,
-      }).lean();
+      const songIds = popularSongs.map((s: any) => s._id);
+      songs = await Song.find({ _id: { $in: songIds }, ...searchFilter }).lean();
 
       const totalPopularSongs = await Event.aggregate([
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song" } },
       ]);
-
       isNext = totalPopularSongs.length > skip + limit;
     } else if (filter === "rare") {
       const songsWithCount = await Event.aggregate([
         { $unwind: "$songs" },
-        {
-          $group: {
-            _id: "$songs.song",
-            count: { $sum: 1 },
-          },
-        },
+        { $group: { _id: "$songs.song", count: { $sum: 1 } } },
       ]);
 
-      const songCountMap = new Map(
-        songsWithCount.map((song) => [song._id.toString(), song.count])
+      const songCountMap = new Map<string, number>(
+        songsWithCount.map((s: any) => [String(s._id), s.count])
       );
 
       const allSongs = await Song.find(searchFilter).lean();
 
       const neverUsedSongs: any[] = [];
-      const rarelyUsedSongs: any[] = [];
+      const rarelyUsedSongs: Array<{ song: any; count: number }> = [];
 
-      allSongs.forEach((song: any) => {
-        const count = songCountMap.get(song._id.toString()) || 0;
+      allSongs.forEach((s: any) => {
+        const count = songCountMap.get(String(s._id)) || 0;
         if (count === 0) {
-          neverUsedSongs.push(song);
+          neverUsedSongs.push(s);
         } else if (count < 2) {
-          rarelyUsedSongs.push({
-            song,
-            count,
-          });
+          rarelyUsedSongs.push({ song: s, count });
         }
       });
 
-      rarelyUsedSongs.sort((a: any, b: any) => a.count - b.count);
+      rarelyUsedSongs.sort((a, b) => a.count - b.count);
 
       const allRareSongs = [
         ...neverUsedSongs,
-        ...rarelyUsedSongs.map((item: any) => item.song),
+        ...rarelyUsedSongs.map((item) => item.song),
       ];
 
       songs = allRareSongs.slice(skip, skip + limit);
@@ -93,14 +82,91 @@ export async function getSongs(
       throw new Error("Invalid filter");
     }
 
-    const serializedSongs = JSON.parse(JSON.stringify(songs));
-
-    return {
-      songs: serializedSongs,
-      isNext,
-    };
+    const serializedSongs = JSON.parse(JSON.stringify(songs)) as GettedSong[];
+    return { songs: serializedSongs, isNext };
   } catch (error) {
     console.error("Error fetching songs:", error);
     throw new Error("Failed to fetch songs");
+  }
+}
+
+export async function getSongById(id: string): Promise<GettedSong> {
+  try {
+    await connectToDB();
+    const song = await Song.findById(id).lean();
+    if (!song) throw new Error("Song not found");
+    return JSON.parse(JSON.stringify(song)) as GettedSong;
+  } catch (error) {
+    console.error("Failed to fetch song:", error);
+    throw new Error("Failed to fetch song");
+  }
+}
+
+export async function deleteSong(
+  songId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await connectToDB();
+    await Song.findByIdAndDelete(songId);
+    revalidatePath("/songs");
+    revalidatePath(`/songs/${songId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete song:", error);
+    return { success: false, error: "Failed to delete song" };
+  }
+}
+
+type UpdatableBlock = {
+  name: string;
+  version: string | number;
+  lines: string;
+  ind: string | number;
+};
+
+export async function updateSongAction(formData: {
+  _id: string | number;
+  title: string;
+  rythm: string;
+  tags: string;
+  comment: string;
+  key: string;
+  mode: string;
+  origin: string;
+  video: string;
+  ourVideo: string;
+  blocks: UpdatableBlock[];
+}): Promise<{ success: true; song: GettedSong } | { success: false; error: string }> {
+  try {
+    await connectToDB();
+
+    const updated = await Song.findByIdAndUpdate(
+      formData._id,
+      {
+        title: formData.title,
+        comment: formData.comment,
+        rythm: formData.rythm,
+        tags: formData.tags,
+        key: formData.key,
+        mode: formData.mode,
+        origin: formData.origin,
+        video: formData.video,
+        ourVideo: formData.ourVideo,
+        blocks: formData.blocks,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return { success: false, error: "Song not found" };
+    }
+
+    const serialized = JSON.parse(JSON.stringify(updated)) as GettedSong;
+    revalidatePath("/songs");
+    revalidatePath(`/songs/${formData._id}`);
+    return { success: true, song: serialized };
+  } catch (error) {
+    console.error("Failed to update song:", error);
+    return { success: false, error: "Failed to update song" };
   }
 }
