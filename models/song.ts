@@ -48,6 +48,30 @@ const SongSchema = new Schema({
     type: String,
     required: [false, "OurVideo is not required"],
   },
+  team: {
+    type: Schema.Types.ObjectId,
+    ref: "Team",
+    required: false,
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  copiedFrom: {
+    type: Schema.Types.ObjectId,
+    ref: "Song",
+    required: false,
+  },
+  copiedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  isOriginal: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const Song = models.Song || model("Song", SongSchema);

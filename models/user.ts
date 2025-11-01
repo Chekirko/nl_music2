@@ -17,6 +17,18 @@ const UserSchema = new Schema({
   password: {
     type: String,
   },
+  activeTeam: {
+    type: Schema.Types.ObjectId,
+    ref: "Team",
+    required: false,
+  },
+  teams: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Team",
+      required: false,
+    },
+  ],
 });
 
 const User = models.User || model("User", UserSchema);

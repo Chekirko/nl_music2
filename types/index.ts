@@ -38,6 +38,8 @@ export interface OurEvent {
   playList?: string;
   songs: Array<EventSong>;
   date?: Date;
+  team?: string;
+  createdBy?: string;
 }
 
 export interface EventSong {
@@ -110,8 +112,53 @@ export interface GettedSong {
   video: string;
   ourVideo: string;
   blocks: Array<Block>;
+  team?: string;
+  createdBy?: string;
+  copiedFrom?: string;
+  copiedBy?: string;
+  isOriginal?: boolean;
 }
 
+export interface TeamMember {
+  user: string;
+  role: "admin" | "editor" | "member";
+  joinedAt: Date;
+  invitedBy?: string;
+}
+
+export interface Team {
+  _id: number;
+  name: string;
+  description?: string;
+  avatar?: string;
+  owner: string;
+  members: TeamMember[];
+  settings: {
+    isPrivate: boolean;
+    allowCopying: boolean;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Invitation {
+  _id: number;
+  team: string;
+  from: string;
+  to: string;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface Notification {
+  _id: number;
+  user: string;
+  type: "team_invite" | "role_change" | "removed_from_team" | "team_update";
+  data: any;
+  isRead: boolean;
+  createdAt: Date;
+}
 export interface CardListProps {
   songs: Array<GettedSong>;
 }
