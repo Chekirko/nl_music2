@@ -74,6 +74,11 @@ const SongSchema = new Schema({
   },
 });
 
+// Унікальність назви пісні в межах команди
+// Якщо в БД уже є дублікати в одній команді, побудова індексу впаде
+// Переконайтесь, що `team` заповнено для всіх документів і немає дублів
+SongSchema.index({ team: 1, title: 1 }, { unique: true, name: "uniq_team_title" });
+
 const Song = models.Song || model("Song", SongSchema);
 
 export default Song;

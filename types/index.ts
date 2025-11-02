@@ -161,15 +161,18 @@ export interface Notification {
 }
 export interface CardListProps {
   songs: Array<GettedSong>;
+  activeTeamId?: string | null;
 }
 
 export interface AlphCardProps {
   letter: string;
   songs: Array<GettedSong>;
+  activeTeamId?: string | null;
 }
 export interface TagCardProps {
   tag: string | null;
   songs: Array<GettedSong>;
+  activeTeamId?: string | null;
 }
 
 export interface SongLinkProps {

@@ -2,24 +2,43 @@
 
 import { CardListProps, GettedSong } from "@/types";
 import { Combobox, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   CheckIcon,
   ChevronUpDownIcon,
   ArrowRightIcon,
 } from "@heroicons/react/20/solid";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { searchSongsAction } from "@/lib/actions/songActions";
+import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
-const SearchTitle = ({ songs }: CardListProps) => {
+const SearchTitle = ({ songs, activeTeamId }: CardListProps) => {
   const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
   const [query, setQuery] = useState("");
+  const [remote, setRemote] = useState<GettedSong[] | null>(null);
+  const searchParams = useSearchParams();
+  const filter = (searchParams.get("filter") as string) || "all";
+  const scope = (searchParams.get("scope") as "team" | "all") || "all";
 
-  const filteredSongs =
-    query === ""
-      ? songs
-      : songs.filter((song) => {
-          return song.title.toLowerCase().includes(query.toLowerCase());
-        });
+  useEffect(() => {
+    const controller = new AbortController();
+    const t = setTimeout(async () => {
+      if (query.trim().length >= 2) {
+        const res = await searchSongsAction({ q: query.trim(), filter, scope, mode: "title" });
+        setRemote(res);
+      } else {
+        setRemote(null);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query, filter, scope]);
+
+  const filteredSongs = useMemo(() => {
+    if (remote) return remote;
+    if (query === "") return songs;
+    return songs.filter((song) => song.title.toLowerCase().includes(query.toLowerCase()));
+  }, [remote, query, songs]);
   return (
     <div className="w-72 flex sm:flex-start flex-end gap-4">
       <Combobox value={selectedSong} onChange={setSelectedSong}>
@@ -62,13 +81,22 @@ const SearchTitle = ({ songs }: CardListProps) => {
                   >
                     {({ selected, active }) => (
                       <>
-                        <span
-                          className={`block truncate ${
+                        <div
+                          className={`flex items-center justify-start ${
                             selected ? "font-medium" : "font-normal"
                           }`}
                         >
-                          {song.title}
-                        </span>
+                          <span className="truncate mr-2">{song.title}</span>
+                          {activeTeamId &&
+                            (song as any).team &&
+                            String((song as any).team) ===
+                              String(activeTeamId) && (
+                              <ShieldCheckIcon
+                                title="Пісня моєї команди"
+                                className="w-4 h-4 text-yellow-400 flex-shrink-0"
+                              />
+                            )}
+                        </div>
                         {selected ? (
                           <span
                             className={`absolute inset-y-0 left-0 flex items-center pl-3 ${

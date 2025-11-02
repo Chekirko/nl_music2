@@ -15,6 +15,8 @@ import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
+import TeamScopeFilter from "./TeamScopeFilter";
+import ActiveTeamBadge from "./ActiveTeamBadge";
 import SearchTitleForEvent from "./SearchTitleForEvent";
 import EventFormBlock from "./EventFormBlock";
 import AgreeModal from "./AgreeModal";
@@ -41,6 +43,8 @@ export {
   NavLinks,
   AuthLinks,
   Providers,
+  TeamScopeFilter,
+  ActiveTeamBadge,
   YearAccordion,
   EventsPageComponent,
   SearchTitleForEvent,

@@ -10,9 +10,16 @@ interface Props {
   isNext: boolean;
   filter?: string | null;
   page?: number;
+  activeTeamId?: string | null;
 }
 
-const SongsFeed = ({ songs, isNext, filter, page = 1 }: Props) => {
+const SongsFeed = ({
+  songs,
+  isNext,
+  filter,
+  page = 1,
+  activeTeamId,
+}: Props) => {
   return (
     <div className="w-full">
       <div className="flex flex-col lg:flex-row items-end lg:items-start lg:justify-between">
@@ -21,18 +28,35 @@ const SongsFeed = ({ songs, isNext, filter, page = 1 }: Props) => {
             У списку пісень: {songs.length}
           </h2>
         ) : (
-          <div className="p-2 rounded h-fit max-w-max mb-4 invisible">&nbsp;</div>
+          <div className="p-2 rounded h-fit max-w-max mb-4 invisible">
+            &nbsp;
+          </div>
         )}
         <div>
-          <SearchBar songs={songs} />
+          <SearchBar songs={songs} activeTeamId={activeTeamId} />
         </div>
       </div>
-      {filter === "pop" && <TagCard tag={"Популярні пісні"} songs={songs} />}
-      {filter === "rare" && <TagCard tag={"Рідко виконувані пісні"} songs={songs} />}
-      {filter !== "pop" && filter !== "rare" && <CardList songs={songs} />}
+      {filter === "pop" && (
+        <TagCard
+          tag={"Популярні пісні"}
+          songs={songs}
+          activeTeamId={activeTeamId}
+        />
+      )}
+      {filter === "rare" && (
+        <TagCard
+          tag={"Рідкісні пісні"}
+          songs={songs}
+          activeTeamId={activeTeamId}
+        />
+      )}
+      {filter !== "pop" && filter !== "rare" && (
+        <CardList songs={songs} activeTeamId={activeTeamId} />
+      )}
       <Pagination pageNumber={page} isNext={isNext} />
     </div>
   );
 };
 
 export default SongsFeed;
+

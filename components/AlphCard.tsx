@@ -1,8 +1,9 @@
 import { AlphCardProps } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
+import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 
-const AlphCard = ({ letter, songs }: AlphCardProps) => {
+const AlphCard = ({ letter, songs, activeTeamId }: AlphCardProps) => {
   const filteredSongs = songs.filter((song) =>
     song.title.toLowerCase().startsWith(letter.toLowerCase())
   );
@@ -32,10 +33,20 @@ const AlphCard = ({ letter, songs }: AlphCardProps) => {
         {filteredSongs.map((song) => (
           <Link
             href={`/songs/${song._id}`}
-            className="alph_link"
+            className="alph_link  w-full"
             key={song._id}
           >
-            {song.title}{" "}
+            <div className=" flex items-center justify-between gap-2 w-full">
+              <span className="truncate">{song.title}</span>
+              {activeTeamId &&
+                (song as any).team &&
+                String((song as any).team) === String(activeTeamId) && (
+                  <ShieldCheckIcon
+                    title="Пісня моєї команди"
+                    className="w-4 h-4 text-yellow-500"
+                  />
+                )}
+            </div>
           </Link>
         ))}
       </div>

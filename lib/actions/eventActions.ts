@@ -4,6 +4,7 @@ import Event from "@/models/event";
 import { connectToDB } from "@/utils/database";
 import mongoose from "mongoose";
 import { revalidatePath } from "next/cache";
+import { requireActiveTeam } from "@/lib/permissions";
 
 export async function createEvent(formData: {
   title: string;
@@ -114,7 +115,11 @@ export async function deleteEvent(eventId: number) {
 export async function getAllEvents() {
   try {
     await connectToDB();
-    const events = await Event.find({}).lean();
+    const access = await requireActiveTeam();
+    if (!access.ok) {
+      return [] as any[];
+    }
+    const events = await Event.find({ team: access.teamId }).lean();
     const serialized = JSON.parse(JSON.stringify(events));
     return serialized;
   } catch (error) {

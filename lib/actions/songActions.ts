@@ -5,12 +5,14 @@ import Event from "@/models/event";
 import { connectToDB } from "@/utils/database";
 import { revalidatePath } from "next/cache";
 import type { GettedSong } from "@/types";
-import { requireActiveTeam } from "@/lib/permissions";
+import { canCreateSong, canEditSong, canDeleteSong, requireActiveTeam } from "@/lib/permissions";
+import mongoose from "mongoose";
 
 export async function getSongs(
   filter?: string,
   page: number = 1,
-  searchQuery?: string
+  searchQuery?: string,
+  scope: "team" | "all" = "all"
 ): Promise<{ songs: GettedSong[]; isNext: boolean }> {
   try {
     const limit = 30;
@@ -25,12 +27,24 @@ export async function getSongs(
       ? { title: { $regex: searchQuery, $options: "i" } }
       : {};
 
+    let teamFilter: any = {};
+    let eventMatch: any = {};
+    if (scope === "team") {
+      const access = await requireActiveTeam();
+      if (!access.ok) {
+        return { songs: [], isNext: false };
+      }
+      teamFilter = { team: access.teamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(access.teamId) };
+    }
+
     if (!filter || filter === "all") {
-      const totalSongs = await Song.countDocuments(searchFilter);
-      songs = await Song.find(searchFilter).lean();
+      const totalSongs = await Song.countDocuments({ ...teamFilter, ...searchFilter });
+      songs = await Song.find({ ...teamFilter, ...searchFilter }).lean();
       isNext = totalSongs > skip + limit;
     } else if (filter === "pop") {
       const popularSongs = await Event.aggregate([
+        ...(scope === "team" ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
@@ -39,15 +53,17 @@ export async function getSongs(
       ]);
 
       const songIds = popularSongs.map((s: any) => s._id);
-      songs = await Song.find({ _id: { $in: songIds }, ...searchFilter }).lean();
+      songs = await Song.find({ _id: { $in: songIds }, ...teamFilter, ...searchFilter }).lean();
 
       const totalPopularSongs = await Event.aggregate([
+        ...(scope === "team" ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song" } },
       ]);
       isNext = totalPopularSongs.length > skip + limit;
     } else if (filter === "rare") {
       const songsWithCount = await Event.aggregate([
+        ...(scope === "team" ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
       ]);
@@ -56,7 +72,7 @@ export async function getSongs(
         songsWithCount.map((s: any) => [String(s._id), s.count])
       );
 
-      const allSongs = await Song.find(searchFilter).lean();
+      const allSongs = await Song.find({ ...teamFilter, ...searchFilter }).lean();
 
       const neverUsedSongs: any[] = [];
       const rarelyUsedSongs: Array<{ song: any; count: number }> = [];
@@ -91,6 +107,83 @@ export async function getSongs(
   }
 }
 
+export async function searchSongsAction(params: {
+  q: string;
+  filter?: string;
+  scope?: "team" | "all";
+  mode?: "title" | "text";
+}) {
+  try {
+    const { q, filter = "all", scope = "all", mode = "title" } = params;
+    await connectToDB();
+
+    const rx = new RegExp(q, "i");
+    const searchFilter = q
+      ? mode === "text"
+        ? { "blocks.lines": rx as any }
+        : { title: rx as any }
+      : {};
+
+    let teamFilter: any = {};
+    let eventMatch: any = {};
+    if (scope === "team") {
+      const access = await requireActiveTeam();
+      if (!access.ok) return [] as GettedSong[];
+      teamFilter = { team: access.teamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(access.teamId) };
+    }
+
+    const limit = 30;
+    let songs: any[] = [];
+
+    if (!filter || filter === "all") {
+      songs = await Song.find({ ...teamFilter, ...searchFilter })
+        .limit(limit)
+        .lean();
+    } else if (filter === "pop") {
+      const popularSongs = await Event.aggregate([
+        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        { $unwind: "$songs" },
+        { $group: { _id: "$songs.song", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: limit },
+      ]);
+      const songIds = popularSongs.map((s: any) => s._id);
+      songs = await Song.find({ _id: { $in: songIds }, ...teamFilter, ...searchFilter })
+        .limit(limit)
+        .lean();
+    } else if (filter === "rare") {
+      const songsWithCount = await Event.aggregate([
+        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        { $unwind: "$songs" },
+        { $group: { _id: "$songs.song", count: { $sum: 1 } } },
+      ]);
+      const songCountMap = new Map<string, number>(
+        songsWithCount.map((s: any) => [String(s._id), s.count])
+      );
+      const allSongs = await Song.find({ ...teamFilter, ...searchFilter }).lean();
+      const neverUsedSongs: any[] = [];
+      const rarelyUsedSongs: Array<{ song: any; count: number }> = [];
+      allSongs.forEach((s: any) => {
+        const count = songCountMap.get(String(s._id)) || 0;
+        if (count === 0) neverUsedSongs.push(s);
+        else if (count < 2) rarelyUsedSongs.push({ song: s, count });
+      });
+      rarelyUsedSongs.sort((a, b) => a.count - b.count);
+      const allRareSongs = [
+        ...neverUsedSongs,
+        ...rarelyUsedSongs.map((item) => item.song),
+      ];
+      songs = allRareSongs.slice(0, limit);
+    }
+
+    return JSON.parse(JSON.stringify(songs)) as GettedSong[];
+  } catch (error) {
+    console.error("Failed to search songs:", error);
+    return [] as GettedSong[];
+  }
+}
+
 export async function getSongById(id: string): Promise<GettedSong> {
   try {
     await connectToDB();
@@ -107,6 +200,10 @@ export async function deleteSong(
   songId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const allowed = await canDeleteSong(songId);
+    if (!allowed.ok) {
+      return { success: false, error: allowed.message };
+    }
     await connectToDB();
     await Song.findByIdAndDelete(songId);
     revalidatePath("/songs");
@@ -139,6 +236,10 @@ export async function updateSongAction(formData: {
   blocks: UpdatableBlock[];
 }): Promise<{ success: true; song: GettedSong } | { success: false; error: string }> {
   try {
+    const allowed = await canEditSong(String(formData._id));
+    if (!allowed.ok) {
+      return { success: false, error: allowed.message };
+    }
     await connectToDB();
 
     const updated = await Song.findByIdAndUpdate(
@@ -195,10 +296,8 @@ export async function createSongAction(formData: {
   | { success: false; error: string; existing?: GettedSong }
 > {
   try {
-    const access = await requireActiveTeam();
-    if (!access.ok) {
-      return { success: false, error: "Active team required" };
-    }
+    const access = await canCreateSong();
+    if (!access.ok) return { success: false, error: access.message };
 
     await connectToDB();
 
