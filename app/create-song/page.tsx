@@ -31,7 +31,8 @@ const CreateSong = () => {
         blocks: sortedBlocks,
       });
       if (res.success) {
-        router.push(`/songs/${(res.song as any)._id}`);
+        const id = (res as any).songId || (res.song as any)._id;
+        router.push(`/songs/${id}`);
       } else {
         if (res.error.includes("Active team")) {
           toast.error("Потрібна активна команда, щоб створити пісню");

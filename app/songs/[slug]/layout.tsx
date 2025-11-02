@@ -1,25 +1,14 @@
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
+import { getSongById } from "@/lib/actions/songActions";
 
 type SingleSongPageProps = { params: { slug: string } };
-export async function generateMetadata(
-  { params }: SingleSongPageProps,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  // fetch data
-  const response = await fetch(
-    new URL(
-      `/api/songs/single?id=${params.slug}`,
-      process.env.NEXT_PUBLIC_BASE_URL
-    ).toString(),
-    {
-      next: { revalidate: 60 },
-    }
-  );
-
-  const song = await response.json();
-  return {
-    title: song?.title,
-  };
+export async function generateMetadata({ params }: SingleSongPageProps): Promise<Metadata> {
+  try {
+    const song = await getSongById(params.slug);
+    return { title: song?.title };
+  } catch {
+    return { title: "Пісня" };
+  }
 }
 
 export default function SingleSongPageLayout({

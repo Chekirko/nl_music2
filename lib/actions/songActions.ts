@@ -191,7 +191,7 @@ export async function createSongAction(formData: {
   ourVideo: string;
   blocks: NewSongBlock[];
 }): Promise<
-  | { success: true; song: GettedSong }
+  | { success: true; song: GettedSong; songId: string }
   | { success: false; error: string; existing?: GettedSong }
 > {
   try {
@@ -241,8 +241,9 @@ export async function createSongAction(formData: {
     await newSong.save();
 
     const serialized = JSON.parse(JSON.stringify(newSong)) as GettedSong;
+    const songId = (newSong as any)._id ? String((newSong as any)._id) : (serialized as any)._id;
     revalidatePath("/songs");
-    return { success: true, song: serialized };
+    return { success: true, song: serialized, songId };
   } catch (error) {
     console.error("Failed to create song:", error);
     return { success: false, error: "Failed to create song" };
