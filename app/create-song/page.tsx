@@ -3,6 +3,8 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { defaultSong } from "@/constants";
 import { Form } from "@/components";
+import { createSongAction } from "@/lib/actions/songActions";
+import { toast } from "react-toastify";
 
 const CreateSong = () => {
   const router = useRouter();
@@ -16,27 +18,32 @@ const CreateSong = () => {
       (a, b) => Number(a.ind) - Number(b.ind)
     );
     try {
-      const response = await fetch("/api/songs/new", {
-        method: "POST",
-        body: JSON.stringify({
-          title: song.title,
-          comment: song.comment,
-          rythm: song.rythm,
-          tags: song.tags,
-          key: song.key,
-          mode: song.mode,
-          origin: song.origin,
-          video: song.video,
-          ourVideo: song.ourVideo,
-          blocks: sortedBlocks,
-        }),
+      const res = await createSongAction({
+        title: song.title,
+        comment: song.comment,
+        rythm: song.rythm,
+        tags: song.tags,
+        key: song.key,
+        mode: song.mode,
+        origin: song.origin,
+        video: song.video,
+        ourVideo: song.ourVideo,
+        blocks: sortedBlocks,
       });
-
-      if (response.ok) {
-        router.push("/songs");
+      if (res.success) {
+        router.push(`/songs/${(res.song as any)._id}`);
+      } else {
+        if (res.error.includes("Active team")) {
+          toast.error("Потрібна активна команда, щоб створити пісню");
+        } else if (res.error.includes("already exists")) {
+          toast.error("Пісня з такою назвою вже існує у вашій команді");
+        } else {
+          toast.error("Не вдалося створити пісню");
+        }
       }
     } catch (error) {
       console.log(error);
+      toast.error("Сталася помилка при створенні пісні");
     } finally {
       setSubmitting(false);
     }
