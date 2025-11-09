@@ -2,9 +2,9 @@ import { create } from "zustand";
 import { GettedSong, OurEvent } from "@/types";
 
 interface EventStore {
-  event: Omit<OurEvent, "_id"> & { _id?: number };
+  event: Omit<OurEvent, "_id"> & { _id?: string };
   songs: GettedSong[];
-  setEvent: (event: Omit<OurEvent, "_id"> & { _id?: number }) => void;
+  setEvent: (event: Omit<OurEvent, "_id"> & { _id?: string }) => void;
   setSongs: (songs: GettedSong[]) => void;
   updateSong: (index: number, songId: string, title: string) => void;
   clearSong: (index: number) => void;

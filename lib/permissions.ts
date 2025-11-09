@@ -4,6 +4,7 @@ import { connectToDB } from "@/utils/database";
 import User from "@/models/user";
 import Team from "@/models/teams";
 import Song from "@/models/song";
+import Event from "@/models/event";
 
 export async function getSessionUser() {
   const session = await getServerSession(authConfig);
@@ -98,6 +99,42 @@ export async function canManageTeam(teamId: string) {
   if (String(access.teamId) !== String(teamId))
     return { ok: false as const, status: 403, message: "Not active team" } as const;
   if (access.role !== "admin")
+    return { ok: false as const, status: 403, message: "Admin only" } as const;
+  return { ok: true as const } as const;
+}
+
+export async function canCreateEvent() {
+  const ar = await getActiveTeamAndRole();
+  if (!ar.ok) return { ok: false as const, status: ar.status, message: ar.message } as const;
+  if (!canEditByRole(ar.role))
+    return { ok: false as const, status: 403, message: "Insufficient role" } as const;
+  return { ok: true as const, teamId: ar.teamId, userId: ar.userId } as const;
+}
+
+export async function canEditEvent(eventId: string) {
+  const ar = await getActiveTeamAndRole();
+  if (!ar.ok) return { ok: false as const, status: ar.status, message: ar.message } as const;
+  await connectToDB();
+  const event = (await Event.findById(eventId).select("team").lean()) as any;
+  if (!event) return { ok: false as const, status: 404, message: "Event not found" } as const;
+  const eventTeamId = event.team ? String(event.team) : null;
+  if (eventTeamId && eventTeamId !== ar.teamId)
+    return { ok: false as const, status: 403, message: "Event from another team" } as const;
+  if (!canEditByRole(ar.role))
+    return { ok: false as const, status: 403, message: "Insufficient role" } as const;
+  return { ok: true as const, teamId: ar.teamId } as const;
+}
+
+export async function canDeleteEvent(eventId: string) {
+  const ar = await getActiveTeamAndRole();
+  if (!ar.ok) return { ok: false as const, status: ar.status, message: ar.message } as const;
+  await connectToDB();
+  const event = (await Event.findById(eventId).select("team").lean()) as any;
+  if (!event) return { ok: false as const, status: 404, message: "Event not found" } as const;
+  const eventTeamId = event.team ? String(event.team) : null;
+  if (eventTeamId && eventTeamId !== ar.teamId)
+    return { ok: false as const, status: 403, message: "Event from another team" } as const;
+  if (!canDeleteByRole(ar.role))
     return { ok: false as const, status: 403, message: "Admin only" } as const;
   return { ok: true as const } as const;
 }

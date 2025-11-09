@@ -32,7 +32,7 @@ export interface SongBlockProps {
 }
 
 export interface OurEvent {
-  _id: number;
+  _id: string;
   title: string;
   live: string;
   playList?: string;
@@ -101,7 +101,7 @@ export interface Block {
 }
 
 export interface GettedSong {
-  _id: number;
+  _id: string;
   title: string;
   rythm: string;
   tags: string;
@@ -127,7 +127,7 @@ export interface TeamMember {
 }
 
 export interface Team {
-  _id: number;
+  _id: string;
   name: string;
   description?: string;
   avatar?: string;
@@ -142,7 +142,7 @@ export interface Team {
 }
 
 export interface Invitation {
-  _id: number;
+  _id: string;
   team: string;
   from: string;
   to: string;
@@ -152,7 +152,7 @@ export interface Invitation {
 }
 
 export interface Notification {
-  _id: number;
+  _id: string;
   user: string;
   type: "team_invite" | "role_change" | "removed_from_team" | "team_update";
   data: any;

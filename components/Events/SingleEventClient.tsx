@@ -84,7 +84,19 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
     setSubmitting(true);
     try {
       const res = await deleteEventAction((event as any)._id);
-      if (res.success) router.push(`/events`);
+      if (res.success) {
+        try {
+          const raw = localStorage.getItem("pinnedEvent");
+          const pinnedEvent = raw ? JSON.parse(raw) : null;
+          if (pinnedEvent?.id === String((event as any)._id)) {
+            localStorage.removeItem("pinnedEvent");
+            emitPinnedChanged();
+          }
+        } catch (err) {
+          console.warn("Failed to clear pinned event after delete", err);
+        }
+        router.push(`/events`);
+      }
     } catch (err) {
       console.error(err);
     } finally {

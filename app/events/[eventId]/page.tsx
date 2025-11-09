@@ -16,11 +16,17 @@ const SingleEventPage = async ({ params }: SingleEventPageProps) => {
   const active = await getActiveTeamAction();
   const activeTeamId = active && active.success && active.team ? (active.team as any).id : null;
   const eventTeamId = (event as any)?.team ? String((event as any).team) : null;
-  if (!activeTeamId || !eventTeamId || activeTeamId !== eventTeamId) {
-    redirect("/events");
-  }
 
-  const { songs } = await getSongs("all");
+  let songsResponse;
+  if (eventTeamId) {
+    if (!activeTeamId || activeTeamId !== eventTeamId) {
+      redirect("/events");
+    }
+    songsResponse = await getSongs("all", 1, undefined, "team");
+  } else {
+    songsResponse = await getSongs("all");
+  }
+  const { songs } = songsResponse;
   return <SingleEventClient initialEvent={event} initialSongs={songs} />;
 };
 

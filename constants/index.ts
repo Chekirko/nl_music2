@@ -32,7 +32,7 @@ export const alphabet = [
 ];
 
 export const defaultEvent = {
-  _id: 1,
+  _id: "1",
   title: "",
   live: "",
   playList: "",
@@ -168,7 +168,7 @@ export const defaultEvent = {
 };
 
 export const defaultSong = {
-  _id: 1,
+  _id: "1",
   title: "",
   rythm: "",
   tags: "",

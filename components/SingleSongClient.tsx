@@ -4,7 +4,6 @@ import { Block, GettedSong } from "@/types";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { EditSongBlockDialog } from "@/components/EditSongBlockDialog";
 import {
   MusicalNoteIcon,
@@ -28,11 +27,12 @@ import { updateSongAction, deleteSong as deleteSongAction } from "@/lib/actions/
 interface Props {
   id: string;
   initialSong: GettedSong;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
-const SingleSongClient = ({ id, initialSong }: Props) => {
+const SingleSongClient = ({ id, initialSong, canEdit, canDelete }: Props) => {
   const router = useRouter();
-  const session = useSession();
 
   const [song, setSong] = useState<GettedSong>(initialSong);
   const [viewText, setViewText] = useState(true);
@@ -49,6 +49,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
 
   const handleDeleteSong = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canDelete) return;
     setSubmitting(true);
     try {
       const res = await deleteSongAction(id);
@@ -210,7 +211,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const onDragEnd = (result: any) => {
-    if (!result.destination || !isOriginTonal) return;
+    if (!canEdit || !result.destination || !isOriginTonal) return;
     const updatedBlocks = Array.from(renderedBlocks!);
     const [reorderedBlock] = updatedBlocks.splice(result.source.index, 1);
     updatedBlocks.splice(result.destination.index, 0, reorderedBlock);
@@ -221,7 +222,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const handleDoubleBlock = (index: number) => {
-    if (!renderedBlocks || !isOriginTonal) return;
+    if (!canEdit || !renderedBlocks || !isOriginTonal) return;
     const newBlock = { ...renderedBlocks[index] };
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks.splice(index + 1, 0, newBlock);
@@ -232,7 +233,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const handleDeleteBlock = (index: number) => {
-    if (!renderedBlocks || !song) return;
+    if (!canEdit || !renderedBlocks || !song) return;
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks.splice(index, 1);
     setRenderedBlocks(updatedBlocks);
@@ -242,7 +243,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const handleUpdateBlock = (index: number, block: Block) => {
-    if (!renderedBlocks || !song || !isOriginTonal) return;
+    if (!canEdit || !renderedBlocks || !song || !isOriginTonal) return;
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks[index] = block;
     setRenderedBlocks(updatedBlocks);
@@ -281,7 +282,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
         </div>
         <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
         <p className="mt-5">Початкова тональність: {song?.key}</p>
-        {session.data?.user && session.data?.user.role === "admin" && (
+        {canEdit && (
           <div className="sm:flex items-center flex-wrap gap-x-4">
             <div>Змінити початкову тональність</div>
             <EditTonalModal
@@ -368,7 +369,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
 
                   return (
                     <Draggable
-                      isDragDisabled={!session.data?.user || session.data?.user.role !== "admin" || submitting}
+                      isDragDisabled={!canEdit || submitting}
                       key={index}
                       draggableId={index.toString()}
                       index={index}
@@ -383,7 +384,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
                         >
                           <div className="flex justify-between gap-10 mb-3">
                             <h3 className="font-semibold text-blue-900 underline">{block.name}</h3>
-                            {session.data?.user && session.data?.user.role === "admin" && (
+                            {canEdit && (
                               <div className="flex gap-3">
                                 <AlertDialogForSongPage
                                   type={1}
@@ -420,9 +421,11 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
           </Droppable>
         </div>
 
-        <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
-          <SongLink route="/update-song" type="Змінити пісню" id={id} />
-        </div>
+        {canEdit && (
+          <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
+            <SongLink route="/update-song" type="Змінити пісню" id={id} />
+          </div>
+        )}
         <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
         <div>
           <iframe
@@ -438,7 +441,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
             }
           `}</style>
         </div>
-        {session.data?.user?.role === "admin" && (
+        {canDelete && (
           <div className="mt-6">
             <AgreeModal
               type="Видалити пісню"

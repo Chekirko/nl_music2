@@ -10,6 +10,7 @@ import { SongCombobox } from "@/components/Events/SongCombobox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createEvent } from "@/lib/actions/eventActions";
+import { toast } from "react-toastify";
 
 interface Props {
   initialSongs: GettedSong[];
@@ -20,6 +21,7 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
   const { event, setEvent, setSongs, addSongSlot, removeSongSlot, reset } =
     useEventStore();
   const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     reset();
@@ -51,6 +53,7 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setErrorMessage(null);
 
     const utcDate = event.date ? new Date(event.date).toISOString() : undefined;
 
@@ -67,6 +70,9 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
     if (result.success) {
       reset();
       router.push("/events");
+    } else {
+      setErrorMessage(result.error || "Не вдалося створити подію");
+      toast.error(result.error || "Не вдалося створити подію");
     }
   };
 
@@ -75,6 +81,9 @@ export const CreateEventForm = ({ initialSongs }: Props) => {
       className="mt-10 w-full max-w-2xl flex flex-col gap-7 glassmorphism"
       onSubmit={handleSubmit}
     >
+      {errorMessage && (
+        <div className="text-red-600 text-sm">{errorMessage}</div>
+      )}
       <label>
         <span className="font-satoshi font-semibold text-base text-gray-700">
           Тип служіння

@@ -1,5 +1,6 @@
 ﻿import { getSongById } from "@/lib/actions/songActions";
 import SingleSongClient from "@/components/SingleSongClient";
+import { canDeleteSong, canEditSong } from "@/lib/permissions";
 
 interface PageProps {
   params: { slug: string };
@@ -7,7 +8,16 @@ interface PageProps {
 
 const SingleSongPage = async ({ params }: PageProps) => {
   const song = await getSongById(params.slug);
-  return <SingleSongClient id={params.slug} initialSong={song} />;
+  const editAccess = await canEditSong(params.slug);
+  const deleteAccess = await canDeleteSong(params.slug);
+  return (
+    <SingleSongClient
+      id={params.slug}
+      initialSong={song}
+      canEdit={!!editAccess.ok}
+      canDelete={!!deleteAccess.ok}
+    />
+  );
 };
 
 export default SingleSongPage;
