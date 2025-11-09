@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -14,7 +14,6 @@ const Navbar = () => {
 
   const handleSmallerScreensNavigation = () => {
     setMenuIcon(!menuIcon);
-    console.log("click");
   };
 
   useEffect(() => {
@@ -39,21 +38,9 @@ const Navbar = () => {
   return (
     <header className="w-full bg-gray-900">
       <nav className="max-w-[1440px] mx-auto flex justify-between items-center padding-x py-4">
-        <Link
-          href="/"
-          className="flex justify-center items-center"
-          onClick={handleSmallerScreensNavigation}
-        >
-          <Image
-            src="/logoi.svg"
-            alt="New Life logo"
-            width={76}
-            height={10}
-            className="object-contain"
-          />
-          <span className="uppercase font-bold text-3xl text-blue-800">
-            Nl_Songs
-          </span>
+        <Link href="/" className="flex justify-center items-center" onClick={handleSmallerScreensNavigation}>
+          <Image src="/logoi.svg" alt="New Life logo" width={76} height={10} className="object-contain" />
+          <span className="uppercase font-bold text-3xl text-blue-800">Nl_Songs</span>
         </Link>
 
         <div className="hidden lg:flex items-center gap-4">
@@ -64,17 +51,21 @@ const Navbar = () => {
               <Link
                 href={`/events/${pinned.id}`}
                 className="max-sm:hidden rounded-full border-2 border-yellow-500 text-yellow-200 hover:text-white hover:bg-yellow-600/20 px-4 py-1.5 text-sm font-semibold"
-                title="Перейти до закріпленої події"
+                title="Відкріпити подію"
               >
                 📌 {pinned.title}
               </Link>
               <button
-                onClick={() => { localStorage.removeItem('pinnedEvent'); setPinned(null); window.dispatchEvent(new CustomEvent('pinned-event-changed')); }}
+                onClick={() => {
+                  localStorage.removeItem("pinnedEvent");
+                  setPinned(null);
+                  window.dispatchEvent(new CustomEvent("pinned-event-changed"));
+                }}
                 className="text-yellow-400 hover:text-white"
-                aria-label="Відкріпити подію"
-                title="Відкріпити подію"
+                aria-label="Відкріпити"
+                title="Відкріпити"
               >
-                ×
+                ✕
               </button>
             </div>
           )}
@@ -82,9 +73,9 @@ const Navbar = () => {
 
         {session?.data ? (
           <div className="hidden lg:flex gap-4 text-white font-bold">
-            <div className="px-4 py-1.5 border-2 border-blue-600 rounded-full">
-              Привіт, {session.data.user?.name}
-            </div>
+            <Link href="/profile" className="px-4 py-1.5 border-2 border-blue-600 rounded-full" title="Мій профіль">
+              Вітаємо, {session.data.user?.name}
+            </Link>
             <button
               onClick={() => signOut()}
               className="px-4 py-1.5 border-2 border-blue-800  bg-blue-600 rounded-full hover:bg-blue-800"
@@ -98,10 +89,7 @@ const Navbar = () => {
           </div>
         )}
 
-        <div
-          onClick={handleSmallerScreensNavigation}
-          className="flex lg:hidden"
-        >
+        <div onClick={handleSmallerScreensNavigation} className="flex lg:hidden">
           {menuIcon ? (
             <AiOutlineClose size={48} className="text-blue-600" />
           ) : (
@@ -127,23 +115,33 @@ const Navbar = () => {
                   📌 {pinned.title}
                 </Link>
                 <button
-                  onClick={() => { localStorage.removeItem('pinnedEvent'); setPinned(null); window.dispatchEvent(new CustomEvent('pinned-event-changed')); }}
+                  onClick={() => {
+                    localStorage.removeItem("pinnedEvent");
+                    setPinned(null);
+                    window.dispatchEvent(new CustomEvent("pinned-event-changed"));
+                  }}
                   className="text-yellow-400 hover:text-white"
-                  aria-label="Відкріпити подію"
+                  aria-label="Відкріпити"
                 >
-                  ×
+                  ✕
                 </button>
               </div>
             )}
             <NavLinks handleClick={handleSmallerScreensNavigation} />
-            <div className="self-center mt-6"><ActiveTeamBadge /></div>
-            {/* <AuthLinks handleClick={handleSmallerScreensNavigation} /> */}
+            <div className="self-center mt-6">
+              <ActiveTeamBadge />
+            </div>
 
             {session?.data ? (
               <div className="flex flex-col mt-16 lg:mt-0 justify-end items-center gap-6 text-white font-bold">
-                <div className="px-4 py-1.5 border-2 border-blue-600 rounded-full">
-                  Привіт, {session.data.user?.name}
-                </div>
+                <Link
+                  href="/profile"
+                  className="px-4 py-1.5 border-2 border-blue-600 rounded-full"
+                  title="Мій профіль"
+                  onClick={handleSmallerScreensNavigation}
+                >
+                  Вітаємо, {session.data.user?.name}
+                </Link>
                 <button
                   onClick={() => signOut()}
                   className="px-4 py-1.5 border-2 border-blue-800  bg-blue-600 rounded-full hover:bg-blue-800"
