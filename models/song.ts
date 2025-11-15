@@ -68,6 +68,10 @@ const SongSchema = new Schema({
     ref: "User",
     required: false,
   },
+  copiedAt: {
+    type: Date,
+    required: false,
+  },
   isOriginal: {
     type: Boolean,
     default: true,

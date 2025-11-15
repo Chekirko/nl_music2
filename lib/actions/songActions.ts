@@ -2,11 +2,91 @@
 
 import Song from "@/models/song";
 import Event from "@/models/event";
+import Team from "@/models/teams";
 import { connectToDB } from "@/utils/database";
 import { revalidatePath } from "next/cache";
-import type { GettedSong } from "@/types";
+import type {
+  Block,
+  GettedSong,
+  SongCopyContext,
+  CopySongResult,
+  SongCopyConflictPreview,
+  Team as TeamInfo,
+} from "@/types";
 import { canCreateSong, canEditSong, canDeleteSong, requireActiveTeam } from "@/lib/permissions";
 import mongoose from "mongoose";
+
+function mapSongDocument(doc: any): GettedSong {
+  if (!doc) {
+    throw new Error("Song document is required");
+  }
+
+  const resolveId = (value: any): string | undefined => {
+    if (!value) return undefined;
+    if (typeof value === "string") return value;
+    if (typeof value === "object" && value._id) return String(value._id);
+    return undefined;
+  };
+
+  const teamId = resolveId(doc.team) || undefined;
+  const teamName =
+    doc.team && typeof doc.team === "object" && "name" in doc.team ? (doc.team as any).name : undefined;
+
+  let copiedFromId: string | undefined;
+  let copiedFromTitle: string | undefined;
+  let copiedFromTeamId: string | undefined;
+  let copiedFromTeamName: string | undefined;
+
+  if (doc.copiedFrom) {
+    if (typeof doc.copiedFrom === "string") {
+      copiedFromId = doc.copiedFrom;
+    } else if (typeof doc.copiedFrom === "object") {
+      copiedFromId = resolveId(doc.copiedFrom);
+      copiedFromTitle = (doc.copiedFrom as any).title;
+      const copiedFromTeam = (doc.copiedFrom as any).team;
+      if (copiedFromTeam) {
+        copiedFromTeamId = resolveId(copiedFromTeam);
+        copiedFromTeamName =
+          copiedFromTeam && typeof copiedFromTeam === "object" && "name" in copiedFromTeam
+            ? (copiedFromTeam as any).name
+            : copiedFromTeamName;
+      }
+    }
+  }
+
+  const blocks: Block[] = Array.isArray(doc.blocks)
+    ? doc.blocks.map((block: any) => ({
+        name: block.name || "",
+        version: String(block.version ?? ""),
+        lines: block.lines || "",
+        ind: String(block.ind ?? ""),
+      }))
+    : [];
+
+  return {
+    _id: String(doc._id),
+    title: doc.title || "",
+    rythm: doc.rythm || "",
+    tags: doc.tags || "",
+    comment: doc.comment || "",
+    key: doc.key || "",
+    mode: doc.mode || "",
+    origin: doc.origin || "",
+    video: doc.video || "",
+    ourVideo: doc.ourVideo || "",
+    blocks,
+    team: teamId,
+    teamName,
+    createdBy: doc.createdBy ? String(doc.createdBy) : undefined,
+    copiedFrom: copiedFromId,
+    copiedFromTitle,
+    copiedFromTeamId,
+    copiedFromTeamName,
+    copiedBy: doc.copiedBy ? String(doc.copiedBy) : undefined,
+    isOriginal: typeof doc.isOriginal === "boolean" ? doc.isOriginal : undefined,
+    copiedAt: doc.copiedAt ? new Date(doc.copiedAt).toISOString() : undefined,
+  };
+}
 
 export async function getSongs(
   filter?: string,
@@ -187,9 +267,16 @@ export async function searchSongsAction(params: {
 export async function getSongById(id: string): Promise<GettedSong> {
   try {
     await connectToDB();
-    const song = await Song.findById(id).lean();
+    const song = await Song.findById(id)
+      .populate({ path: "team", select: "name" })
+      .populate({
+        path: "copiedFrom",
+        select: "title team",
+        populate: { path: "team", select: "name" },
+      })
+      .lean();
     if (!song) throw new Error("Song not found");
-    return JSON.parse(JSON.stringify(song)) as GettedSong;
+    return mapSongDocument(song);
   } catch (error) {
     console.error("Failed to fetch song:", error);
     throw new Error("Failed to fetch song");
@@ -346,5 +433,252 @@ export async function createSongAction(formData: {
   } catch (error) {
     console.error("Failed to create song:", error);
     return { success: false, error: "Failed to create song" };
+  }
+}
+
+export async function getSongCopyContext(songId: string): Promise<SongCopyContext> {
+  try {
+    await connectToDB();
+    const song = await Song.findById(songId)
+      .select("_id team copiedFrom")
+      .lean<Pick<GettedSong, "_id" | "team" | "copiedFrom">>();
+    if (!song) {
+      return {
+        activeTeamId: null,
+        canCopy: false,
+        reason: "Пісню не знайдено",
+        isSameTeam: false,
+        hasActiveTeam: false,
+        alreadyCopiedSongId: null,
+        alreadyCopiedSongTitle: undefined,
+        sourceTeamId: null,
+        sourceTeamName: null,
+      };
+    }
+
+    const sourceTeamId = song.team ? String(song.team) : null;
+    const sourceTeam = sourceTeamId
+      ? await Team.findById(sourceTeamId)
+          .select("name settings")
+          .lean<Pick<TeamInfo, "name" | "settings">>()
+      : null;
+    const allowCopying = sourceTeam?.settings?.allowCopying !== false;
+
+    const baseContext: SongCopyContext = {
+      activeTeamId: null,
+      canCopy: false,
+      reason: undefined,
+      isSameTeam: false,
+      hasActiveTeam: false,
+      alreadyCopiedSongId: null,
+      alreadyCopiedSongTitle: undefined,
+      sourceTeamId,
+      sourceTeamName: sourceTeam?.name ?? null,
+    };
+
+    const activeTeamAccess = await requireActiveTeam();
+    if (!activeTeamAccess.ok) {
+      return {
+        ...baseContext,
+        reason: activeTeamAccess.message,
+      };
+    }
+
+    const createAccess = await canCreateSong();
+    if (!createAccess.ok) {
+      return {
+        ...baseContext,
+        activeTeamId: activeTeamAccess.teamId,
+        hasActiveTeam: true,
+        reason: createAccess.message,
+      };
+    }
+
+    const context: SongCopyContext = {
+      ...baseContext,
+      activeTeamId: createAccess.teamId,
+      hasActiveTeam: true,
+    };
+
+    if (song.copiedFrom) {
+      const originalSong = await Song.findById(song.copiedFrom)
+        .select("_id team title")
+        .lean<Pick<GettedSong, "_id" | "team" | "title">>();
+      if (originalSong && originalSong.team && String(originalSong.team) === createAccess.teamId) {
+        return {
+          ...context,
+          alreadyCopiedSongId: String(originalSong._id),
+          alreadyCopiedSongTitle: originalSong.title,
+          reason: "Оригінал цієї пісні вже належить вашій активній команді",
+        };
+      }
+    }
+
+    if (sourceTeamId && sourceTeamId === createAccess.teamId) {
+      return {
+        ...context,
+        isSameTeam: true,
+        reason: "Пісня вже належить вашій активній команді",
+      };
+    }
+
+    if (sourceTeamId && !allowCopying) {
+      return {
+        ...context,
+        reason: "Команда-джерело заборонила копіювання",
+      };
+    }
+
+    const existingCopy = await Song.findOne({
+      team: createAccess.teamId,
+      copiedFrom: song._id,
+    })
+      .select("_id title")
+      .lean<Pick<GettedSong, "_id" | "title">>();
+
+    if (existingCopy) {
+      return {
+        ...context,
+        alreadyCopiedSongId: String(existingCopy._id),
+        alreadyCopiedSongTitle: existingCopy.title,
+        reason: "Ця пісня вже скопійована у вашу команду",
+      };
+    }
+
+    return {
+      ...context,
+      canCopy: true,
+    };
+  } catch (error) {
+    console.error("Failed to build copy context:", error);
+    return {
+      activeTeamId: null,
+      canCopy: false,
+      reason: "Не вдалося визначити можливість копіювання",
+      isSameTeam: false,
+      hasActiveTeam: false,
+      alreadyCopiedSongId: null,
+      alreadyCopiedSongTitle: undefined,
+      sourceTeamId: null,
+      sourceTeamName: null,
+    };
+  }
+}
+
+export async function copySongToActiveTeamAction(params: {
+  songId: string;
+  titleOverride?: string;
+}): Promise<CopySongResult> {
+  try {
+    const access = await canCreateSong();
+    if (!access.ok) {
+      return { status: "forbidden", reason: access.message };
+    }
+
+    await connectToDB();
+    const original = await Song.findById(params.songId)
+      .lean<Pick<
+        GettedSong,
+        | "_id"
+        | "title"
+        | "team"
+        | "blocks"
+        | "comment"
+        | "rythm"
+        | "tags"
+        | "key"
+        | "mode"
+        | "origin"
+        | "video"
+        | "ourVideo"
+      >>();
+    if (!original) {
+      return { status: "error", message: "Пісню не знайдено" };
+    }
+
+    const sourceTeamId = original.team ? String(original.team) : null;
+    if (sourceTeamId && sourceTeamId === access.teamId) {
+      return { status: "same_team" };
+    }
+
+    if (sourceTeamId) {
+      const sourceTeam = await Team.findById(sourceTeamId)
+        .select("settings")
+        .lean<Pick<TeamInfo, "settings">>();
+      if (sourceTeam && sourceTeam.settings?.allowCopying === false) {
+        return { status: "forbidden", reason: "Команда-джерело заборонила копіювання" };
+      }
+    }
+
+    const existingCopy = await Song.findOne({ team: access.teamId, copiedFrom: original._id })
+      .select("_id")
+      .lean<Pick<GettedSong, "_id">>();
+    if (existingCopy) {
+      return { status: "already_copied", songId: String(existingCopy._id) };
+    }
+
+    const desiredTitle = (params.titleOverride?.trim() || original.title || "").trim();
+    if (!desiredTitle) {
+      return { status: "error", message: "Назва пісні не може бути порожньою" };
+    }
+
+    const duplicateByTitle = await Song.findOne({
+      team: access.teamId,
+      title: desiredTitle,
+    })
+      .select("_id title blocks team")
+      .lean<Pick<GettedSong, "_id" | "title" | "blocks" | "team">>();
+
+    if (duplicateByTitle) {
+      let teamName: string | undefined;
+      if (duplicateByTitle.team) {
+        const teamDoc = await Team.findById(duplicateByTitle.team)
+          .select("name")
+          .lean<Pick<TeamInfo, "name">>();
+        teamName = teamDoc?.name;
+      }
+      const previewBlocks = (duplicateByTitle.blocks ?? []).slice(0, 3);
+      const preview: SongCopyConflictPreview = {
+        id: String(duplicateByTitle._id),
+        title: duplicateByTitle.title,
+        teamName,
+        blocks: previewBlocks,
+      };
+      return { status: "conflict", existing: preview };
+    }
+
+    const duplicatedBlocks = Array.isArray(original.blocks)
+      ? original.blocks.map((block) => ({ ...block }))
+      : [];
+
+    const newSong = new Song({
+      title: desiredTitle,
+      comment: original.comment || "",
+      rythm: original.rythm || "",
+      tags: original.tags || "",
+      key: original.key || "",
+      mode: original.mode || "",
+      origin: original.origin || "",
+      video: original.video || "",
+      ourVideo: original.ourVideo || "",
+      blocks: duplicatedBlocks,
+      team: access.teamId,
+      createdBy: access.userId,
+      copiedFrom: original._id,
+      copiedBy: access.userId,
+      copiedAt: new Date(),
+      isOriginal: false,
+    });
+
+    await newSong.save();
+
+    revalidatePath("/songs");
+    revalidatePath(`/songs/${String(newSong._id)}`);
+    revalidatePath(`/songs/${params.songId}`);
+
+    return { status: "success", songId: String(newSong._id), teamId: access.teamId };
+  } catch (error) {
+    console.error("Failed to copy song:", error);
+    return { status: "error", message: "Не вдалося скопіювати пісню" };
   }
 }

@@ -113,11 +113,43 @@ export interface GettedSong {
   ourVideo: string;
   blocks: Array<Block>;
   team?: string;
+  teamName?: string;
   createdBy?: string;
   copiedFrom?: string;
+  copiedFromTitle?: string;
+  copiedFromTeamId?: string;
+  copiedFromTeamName?: string;
   copiedBy?: string;
   isOriginal?: boolean;
+  copiedAt?: string;
 }
+
+export interface SongCopyConflictPreview {
+  id: string;
+  title: string;
+  teamName?: string;
+  blocks: Array<Block>;
+}
+
+export interface SongCopyContext {
+  activeTeamId: string | null;
+  canCopy: boolean;
+  reason?: string;
+  isSameTeam: boolean;
+  hasActiveTeam: boolean;
+  alreadyCopiedSongId?: string | null;
+  alreadyCopiedSongTitle?: string;
+  sourceTeamId?: string | null;
+  sourceTeamName?: string | null;
+}
+
+export type CopySongResult =
+  | { status: "success"; songId: string; teamId: string }
+  | { status: "already_copied"; songId: string }
+  | { status: "conflict"; existing: SongCopyConflictPreview }
+  | { status: "same_team" }
+  | { status: "forbidden"; reason: string }
+  | { status: "error"; message: string };
 
 export interface TeamMember {
   user: string;

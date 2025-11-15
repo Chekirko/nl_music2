@@ -1,4 +1,4 @@
-﻿import { getSongById } from "@/lib/actions/songActions";
+﻿import { getSongById, getSongCopyContext } from "@/lib/actions/songActions";
 import SingleSongClient from "@/components/SingleSongClient";
 import { canDeleteSong, canEditSong } from "@/lib/permissions";
 
@@ -8,6 +8,7 @@ interface PageProps {
 
 const SingleSongPage = async ({ params }: PageProps) => {
   const song = await getSongById(params.slug);
+  const copyContext = await getSongCopyContext(params.slug);
   const editAccess = await canEditSong(params.slug);
   const deleteAccess = await canDeleteSong(params.slug);
   return (
@@ -16,6 +17,7 @@ const SingleSongPage = async ({ params }: PageProps) => {
       initialSong={song}
       canEdit={!!editAccess.ok}
       canDelete={!!deleteAccess.ok}
+      initialCopyContext={copyContext}
     />
   );
 };

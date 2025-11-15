@@ -1,6 +1,6 @@
 "use client";
 import { SongLink } from "@/components";
-import { Block, GettedSong } from "@/types";
+import { Block, GettedSong, SongCopyContext } from "@/types";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,15 +23,17 @@ import { replaceBadChords, pureTranspose, changeChordsByTonal } from "@/lib/chor
 import EditTonalModal from "@/components/EditTonalModal";
 import { createProgression } from "@/lib/progression";
 import { updateSongAction, deleteSong as deleteSongAction } from "@/lib/actions/songActions";
+import CopySongButton from "@/components/CopySongButton";
 
 interface Props {
   id: string;
   initialSong: GettedSong;
   canEdit: boolean;
   canDelete: boolean;
+  initialCopyContext: SongCopyContext;
 }
 
-const SingleSongClient = ({ id, initialSong, canEdit, canDelete }: Props) => {
+const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyContext }: Props) => {
   const router = useRouter();
 
   const [song, setSong] = useState<GettedSong>(initialSong);
@@ -258,6 +260,28 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete }: Props) => {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="padding-x max-w-[1600px] mx-auto">
         <h1 className="head_text  text-blue-600">{song?.title}</h1>
+        <div className="mt-2">
+          <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1 text-sm font-medium text-blue-700 border border-blue-200">
+            Пісня {song?.teamName ? `команди ${song.teamName}` : "загального списку"}
+          </span>
+        </div>
+        {song?.copiedFrom && (
+          <div className="mt-1 text-sm text-gray-600">
+            Скопійовано з{" "}
+            <Link href={`/songs/${song.copiedFrom}`} className="font-semibold text-blue-600 underline">
+              {song.copiedFromTitle || "оригінальної версії"}
+            </Link>
+            {song.copiedFromTeamName && (
+              <span className="ml-1 text-gray-500">(команда {song.copiedFromTeamName})</span>
+            )}
+          </div>
+        )}
+        <CopySongButton
+          songId={id}
+          songTitle={song?.title || ""}
+          initialContext={initialCopyContext}
+          isOriginalSong={song?.isOriginal !== false ? true : false}
+        />
         <div className="flex flex-start gap-8 mt-5">
           <button className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center" onClick={handleViewChords}>
             <MusicalNoteIcon className="w-8 h-8 text-gray-500" />
@@ -427,20 +451,22 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete }: Props) => {
           </div>
         )}
         <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
-        <div>
-          <iframe
-            width="500"
-            height="281"
-            src={song?.video}
-            title={song?.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          ></iframe>
-          <style jsx>{`
-            @media (max-width: 600px) {
-              iframe { width: 100%; }
-            }
-          `}</style>
-        </div>
+        {song?.video && song.video.trim() !== "" && (
+          <div>
+            <iframe
+              width="500"
+              height="281"
+              src={song.video}
+              title={song?.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            ></iframe>
+            <style jsx>{`
+              @media (max-width: 600px) {
+                iframe { width: 100%; }
+              }
+            `}</style>
+          </div>
+        )}
         {canDelete && (
           <div className="mt-6">
             <AgreeModal
