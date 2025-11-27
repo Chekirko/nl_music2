@@ -33,9 +33,9 @@ export async function sendInvitationAction(params: {
     const [team, toUser, fromUser] = await Promise.all([
       Team.findById(params.teamId)
         .select("_id owner members.user name")
-        .lean(),
-      User.findById(params.toUserId).select("_id teams").lean(),
-      User.findById(access.userId).select("_id name email").lean(),
+        .lean() as any,
+      User.findById(params.toUserId).select("_id teams").lean() as any,
+      User.findById(access.userId).select("_id name email").lean() as any,
     ]);
 
     if (!team) {
@@ -65,7 +65,7 @@ export async function sendInvitationAction(params: {
       status: "pending",
     })
       .select("_id")
-      .lean();
+      .lean() as any;
     if (existing) {
       return { success: false, error: "Запрошення вже надіслано" };
     }
@@ -111,7 +111,7 @@ export async function acceptInvitationAction(invitationId: string): Promise<Basi
 
     const invitation = await Invitation.findById(invitationId)
       .select("team to status")
-      .lean();
+      .lean() as any;
     if (!invitation) {
       return { success: false, error: "Запрошення не знайдено" };
     }
@@ -126,8 +126,8 @@ export async function acceptInvitationAction(invitationId: string): Promise<Basi
 
     // Додаємо користувача в команду та команду в список користувача
     const [teamDoc, userDoc] = await Promise.all([
-      Team.findById(teamId).select("members").lean(),
-      User.findById(user._id).select("teams").lean(),
+      Team.findById(teamId).select("members").lean() as any,
+      User.findById(user._id).select("teams").lean() as any,
     ]);
     if (!teamDoc) {
       return { success: false, error: "Команду не знайдено" };
@@ -205,7 +205,7 @@ export async function declineInvitationAction(invitationId: string): Promise<Bas
 
     const invitation = await Invitation.findById(invitationId)
       .select("to status")
-      .lean();
+      .lean() as any;
     if (!invitation) {
       return { success: false, error: "Запрошення не знайдено" };
     }
@@ -244,7 +244,7 @@ export async function cancelInvitationAction(invitationId: string): Promise<Basi
 
     const invitation = await Invitation.findById(invitationId)
       .select("team from status")
-      .lean();
+      .lean() as any;
     if (!invitation) {
       return { success: false, error: "Запрошення не знайдено" };
     }
@@ -296,7 +296,7 @@ export async function getUserInvitationsAction(params?: {
 
     const invitations = await Invitation.find(query)
       .sort({ createdAt: -1 })
-      .lean();
+      .lean() as any[];
 
     return {
       success: true as const,

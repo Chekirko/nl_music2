@@ -182,7 +182,7 @@ export async function deleteTeam(teamId: string) {
     // Витягуємо всіх користувачів команди
     const members = await User.find({ teams: teamId })
       .select("_id activeTeam")
-      .lean();
+      .lean() as any[];
 
     // Прибираємо команду з масиву команд у всіх користувачів
     await User.updateMany({ teams: teamId }, { $pull: { teams: teamId } });
@@ -228,7 +228,7 @@ export async function updateTeamMemberRoleAction(params: {
 
     const teamDoc = await Team.findById(params.teamId)
       .select("name")
-      .lean();
+      .lean() as any;
 
     const res = await Team.updateOne(
       { _id: params.teamId, "members.user": params.userId },
@@ -266,7 +266,7 @@ export async function removeTeamMemberAction(params: {
 
     const teamDoc = await Team.findById(params.teamId)
       .select("name")
-      .lean();
+      .lean() as any;
 
     const res = await Team.updateOne(
       { _id: params.teamId },

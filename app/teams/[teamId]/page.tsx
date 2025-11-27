@@ -30,7 +30,7 @@ export default async function TeamPage({ params }: PageProps) {
   await connectToDB();
   const currentUserDoc = await User.findOne({ email: session.user.email })
     .select("_id")
-    .lean();
+    .lean() as any;
   const currentUserId = currentUserDoc ? String(currentUserDoc._id) : null;
 
   const ids = new Set<string>([

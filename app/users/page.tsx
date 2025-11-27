@@ -35,7 +35,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
 
   if (activeTeamId) {
     await connectToDB();
-    const userDoc = await User.findOne({ email: session.user.email }).select("_id").lean();
+    const userDoc = await User.findOne({ email: session.user.email }).select("_id").lean() as any;
     if (userDoc) {
       userId = String(userDoc._id);
       const team = await Team.findById(activeTeamId)

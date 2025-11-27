@@ -33,7 +33,7 @@ export default async function NotificationsPage() {
     const teamIds = Array.from(teamIdSet);
     const teams = await Team.find({ _id: { $in: teamIds } })
       .select("name")
-      .lean();
+      .lean() as any[];
     const map = new Map<string, string>();
     teams.forEach((t: any) => {
       map.set(String(t._id), t.name || "");
