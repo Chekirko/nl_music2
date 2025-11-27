@@ -28,6 +28,60 @@ export async function createNotificationAction(params: {
   }
 }
 
+export async function notifyTeamMembers(params: {
+  teamId: string;
+  excludeUserIds?: string[];
+  type: "team_invite" | "role_change" | "removed_from_team" | "team_update";
+  data: any;
+}): Promise<BasicResult> {
+  try {
+    await connectToDB();
+    
+    const Team = (await import("@/models/teams")).default;
+    const team = await Team.findById(params.teamId)
+      .select("members owner")
+      .lean();
+    
+    if (!team) {
+      return { success: false, error: "Команду не знайдено" };
+    }
+    
+    const excludeSet = new Set(params.excludeUserIds?.map(id => String(id)) || []);
+    const memberIdSet = new Set<string>();
+    
+    // Add owner
+    const ownerId = String((team as any).owner);
+    if (!excludeSet.has(ownerId)) {
+      memberIdSet.add(ownerId);
+    }
+    
+    // Add members (Set automatically handles duplicates)
+    const members = (team as any).members || [];
+    for (const member of members) {
+      const memberId = String(member.user);
+      if (!excludeSet.has(memberId)) {
+        memberIdSet.add(memberId);
+      }
+    }
+    
+    // Create notifications for all unique members
+    const notifications = Array.from(memberIdSet).map(userId => ({
+      user: userId,
+      type: params.type,
+      data: params.data,
+    }));
+    
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error("notifyTeamMembers error", error);
+    return { success: false, error: "Не вдалося створити сповіщення для команди" };
+  }
+}
+
 export async function getUserNotificationsAction(params?: {
   onlyUnread?: boolean;
 }) {

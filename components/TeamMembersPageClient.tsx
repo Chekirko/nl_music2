@@ -42,12 +42,14 @@ interface Props {
   teamId: string;
   members: TeamMemberWithUser[];
   canManage: boolean;
+  isOwner: boolean;
 }
 
 const TeamMembersPageClient = ({
   teamId,
   members,
   canManage,
+  isOwner,
   // teamName передамо з серверної сторінки через пропси,
   // але робимо його опційним, щоб не ламати виклики
   teamName,
@@ -61,6 +63,7 @@ const TeamMembersPageClient = ({
   const [searching, setSearching] = useState(false);
   const [inviteBusyId, setInviteBusyId] = useState<string | null>(null);
   const [deletingTeam, setDeletingTeam] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleRoleChange = async (userId: string, role: "admin" | "editor" | "member") => {
     setBusyId(userId);
@@ -70,6 +73,14 @@ const TeamMembersPageClient = ({
         setState((prev) =>
           prev.map((m) => (m.userId === userId ? { ...m, role } : m))
         );
+        // Notify that notifications may have changed
+        if (typeof window !== "undefined") {
+          try {
+            window.dispatchEvent(new CustomEvent("notifications-changed"));
+          } catch {
+            // ignore
+          }
+        }
       } else {
         alert(res.error);
       }
@@ -111,6 +122,14 @@ const TeamMembersPageClient = ({
       const res = await removeTeamMemberAction({ teamId, userId });
       if (res.success) {
         setState((prev) => prev.filter((m) => m.userId !== userId));
+        // Notify that notifications may have changed
+        if (typeof window !== "undefined") {
+          try {
+            window.dispatchEvent(new CustomEvent("notifications-changed"));
+          } catch {
+            // ignore
+          }
+        }
       } else {
         alert(res.error);
       }
@@ -127,9 +146,11 @@ const TeamMembersPageClient = ({
     const q = searchQuery.trim();
     if (!q) {
       setSearchResults([]);
+      setHasSearched(false);
       return;
     }
     setSearching(true);
+    setHasSearched(true);
     try {
       const res = await searchUsersForTeamAction({ teamId, q });
       if (res.success) {
@@ -155,6 +176,14 @@ const TeamMembersPageClient = ({
             u._id === userId ? { ...u, hasPendingInvite: true } : u
           )
         );
+        // Notify that notifications may have changed (invited user will get notification)
+        if (typeof window !== "undefined") {
+          try {
+            window.dispatchEvent(new CustomEvent("notifications-changed"));
+          } catch {
+            // ignore
+          }
+        }
       } else {
         alert(res.error);
       }
@@ -172,7 +201,7 @@ const TeamMembersPageClient = ({
         <h1 className="text-2xl font-bold text-blue-700">
           Учасники команди{teamName ? ` «${teamName}»` : ""}
         </h1>
-        {canManage && (
+        {isOwner && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button
@@ -214,7 +243,10 @@ const TeamMembersPageClient = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setHasSearched(false);
+              }}
               placeholder="Введіть ім'я або email"
               className="flex-1 rounded border px-3 py-2 bg-white text-gray-800 text-sm"
             />
@@ -275,7 +307,12 @@ const TeamMembersPageClient = ({
               })}
             </ul>
           )}
-          {!searching && searchQuery.trim() && searchResults.length === 0 && (
+          {!searching && searchQuery.trim() && !hasSearched && (
+             <p className="text-xs text-gray-500">
+               Натисніть Пошук або Enter, щоб знайти користувачів.
+             </p>
+          )}
+          {!searching && hasSearched && searchResults.length === 0 && (
             <p className="text-xs text-gray-500">
               За цим запитом користувачів не знайдено.
             </p>

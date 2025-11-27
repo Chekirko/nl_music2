@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Notification } from "@/types";
 import {
   acceptInvitationAction,
@@ -31,6 +32,7 @@ interface Props {
 const NotificationsPageClient = ({ initialNotifications }: Props) => {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const router = useRouter();
 
   const updateNotification = (id: string, patch: Partial<Notification>) => {
     setNotifications((prev) =>
@@ -72,6 +74,7 @@ const NotificationsPageClient = ({ initialNotifications }: Props) => {
       const res = await deleteNotificationAction(id);
       if (res.success) {
         removeNotification(id);
+        router.refresh(); // Refresh server data
         if (typeof window !== "undefined") {
           try {
             window.dispatchEvent(new CustomEvent("notifications-changed"));
@@ -268,6 +271,82 @@ const NotificationsPageClient = ({ initialNotifications }: Props) => {
                       <>команди, яка зараз недоступна.</>
                     )}
                   </p>
+                </div>
+              ) : n.type === "team_update" ? (
+                <div className="space-y-1">
+                  {data.action === "member_joined" ? (
+                    <p className="text-sm">
+                      Новий учасник{" "}
+                      <span className="font-semibold">
+                        {data.newMemberName || data.newMemberEmail || "користувач"}
+                      </span>{" "}
+                      приєднався до команди{" "}
+                      {data.teamName && (
+                        <span className="font-semibold">{data.teamName}</span>
+                      )}
+                      .
+                    </p>
+                  ) : data.action === "invitation_declined" ? (
+                    <p className="text-sm">
+                      Користувач{" "}
+                      <span className="font-semibold">
+                        {data.userName || data.userEmail || "користувач"}
+                      </span>{" "}
+                      відхилив запрошення до команди{" "}
+                      {data.teamName && (
+                        <span className="font-semibold">{data.teamName}</span>
+                      )}
+                      .
+                    </p>
+                  ) : data.action === "role_changed" ? (
+                    <p className="text-sm">
+                      Роль учасника{" "}
+                      <span className="font-semibold">
+                        {data.memberName || data.memberEmail || "користувач"}
+                      </span>{" "}
+                      у команді{" "}
+                      {data.teamName && (
+                        <span className="font-semibold">{data.teamName}</span>
+                      )}{" "}
+                      змінена на{" "}
+                      <span className="font-semibold">
+                        {data.newRole === "admin"
+                          ? "адмін"
+                          : data.newRole === "editor"
+                          ? "редактор"
+                          : "учасник"}
+                      </span>
+                      .
+                    </p>
+                  ) : data.action === "member_removed" ? (
+                    <p className="text-sm">
+                      Учасник{" "}
+                      <span className="font-semibold">
+                        {data.removedMemberName || data.removedMemberEmail || "користувач"}
+                      </span>{" "}
+                      був видалений з команди{" "}
+                      {data.teamName && (
+                        <span className="font-semibold">{data.teamName}</span>
+                      )}
+                      .
+                    </p>
+                  ) : (
+                    <p className="text-sm">
+                      Оновлення команди{" "}
+                      {data.teamName && (
+                        <span className="font-semibold">{data.teamName}</span>
+                      )}
+                      .
+                    </p>
+                  )}
+                  {data.teamId && (
+                    <Link
+                      href={`/teams/${data.teamId}`}
+                      className="inline-flex text-xs text-blue-700 hover:underline mt-1"
+                    >
+                      Перейти до команди
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-1">

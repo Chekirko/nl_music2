@@ -484,27 +484,28 @@ export async function getSongCopyContext(songId: string): Promise<SongCopyContex
       };
     }
 
-    const createAccess = await canCreateSong();
-    if (!createAccess.ok) {
-      return {
-        ...baseContext,
-        activeTeamId: activeTeamAccess.teamId,
-        hasActiveTeam: true,
-        reason: createAccess.message,
-      };
-    }
-
+    const activeTeamId = activeTeamAccess.teamId;
     const context: SongCopyContext = {
       ...baseContext,
-      activeTeamId: createAccess.teamId,
+      activeTeamId,
       hasActiveTeam: true,
     };
 
+    // 1. Check if it's the same team
+    if (sourceTeamId && sourceTeamId === activeTeamId) {
+      return {
+        ...context,
+        isSameTeam: true,
+        reason: "Пісня вже належить вашій активній команді",
+      };
+    }
+
+    // 2. Check if original is in the team
     if (song.copiedFrom) {
       const originalSong = await Song.findById(song.copiedFrom)
         .select("_id team title")
         .lean<Pick<GettedSong, "_id" | "team" | "title">>();
-      if (originalSong && originalSong.team && String(originalSong.team) === createAccess.teamId) {
+      if (originalSong && originalSong.team && String(originalSong.team) === activeTeamId) {
         return {
           ...context,
           alreadyCopiedSongId: String(originalSong._id),
@@ -514,23 +515,9 @@ export async function getSongCopyContext(songId: string): Promise<SongCopyContex
       }
     }
 
-    if (sourceTeamId && sourceTeamId === createAccess.teamId) {
-      return {
-        ...context,
-        isSameTeam: true,
-        reason: "Пісня вже належить вашій активній команді",
-      };
-    }
-
-    if (sourceTeamId && !allowCopying) {
-      return {
-        ...context,
-        reason: "Команда-джерело заборонила копіювання",
-      };
-    }
-
+    // 3. Check if we already have a copy
     const existingCopy = await Song.findOne({
-      team: createAccess.teamId,
+      team: activeTeamId,
       copiedFrom: song._id,
     })
       .select("_id title")
@@ -542,6 +529,22 @@ export async function getSongCopyContext(songId: string): Promise<SongCopyContex
         alreadyCopiedSongId: String(existingCopy._id),
         alreadyCopiedSongTitle: existingCopy.title,
         reason: "Ця пісня вже скопійована у вашу команду",
+      };
+    }
+
+    // 4. Check permissions and source settings
+    const createAccess = await canCreateSong();
+    if (!createAccess.ok) {
+      return {
+        ...context,
+        reason: createAccess.message,
+      };
+    }
+
+    if (sourceTeamId && !allowCopying) {
+      return {
+        ...context,
+        reason: "Команда-джерело заборонила копіювання",
       };
     }
 

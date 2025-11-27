@@ -238,6 +238,30 @@ export async function updateTeamMemberRoleAction(params: {
       return { success: false as const, error: "Member not found in team" };
     }
 
+    // Отримуємо дані про учасника для сповіщень
+    const memberData = await User.findById(params.userId)
+      .select("name email")
+      .lean() as any;
+
+    // Сповіщаємо всіх інших учасників команди про зміну ролі
+    if (memberData) {
+      const { notifyTeamMembers } = await import("@/lib/actions/notificationActions");
+      await notifyTeamMembers({
+        teamId: params.teamId,
+        excludeUserIds: [params.userId],
+        type: "team_update",
+        data: {
+          action: "role_changed",
+          teamId: params.teamId,
+          teamName: teamDoc?.name || "",
+          memberName: memberData.name || "",
+          memberEmail: memberData.email || "",
+          newRole: params.role,
+        },
+      });
+    }
+
+    // Сповіщаємо самого учасника про зміну його ролі
     await createNotificationAction({
       userId: params.userId,
       type: "role_change",
@@ -285,6 +309,29 @@ export async function removeTeamMemberAction(params: {
       { $unset: { activeTeam: "" } }
     );
 
+    // Отримуємо дані про видаленого учасника для сповіщень
+    const memberData = await User.findById(params.userId)
+      .select("name email")
+      .lean() as any;
+
+    // Сповіщаємо всіх інших учасників команди про видалення учасника
+    if (memberData) {
+      const { notifyTeamMembers } = await import("@/lib/actions/notificationActions");
+      await notifyTeamMembers({
+        teamId: params.teamId,
+        excludeUserIds: [params.userId],
+        type: "team_update",
+        data: {
+          action: "member_removed",
+          teamId: params.teamId,
+          teamName: teamDoc?.name || "",
+          removedMemberName: memberData.name || "",
+          removedMemberEmail: memberData.email || "",
+        },
+      });
+    }
+
+    // Сповіщаємо видаленого учасника
     await createNotificationAction({
       userId: params.userId,
       type: "removed_from_team",

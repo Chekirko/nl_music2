@@ -65,12 +65,14 @@ export default async function TeamPage({ params }: PageProps) {
 
   const canManageRes = await canManageTeam(params.teamId);
   const canManage = !!canManageRes.ok;
+  const isOwner = currentUserId ? currentUserId === team.owner : false;
 
   return (
     <TeamMembersPageClient
       teamId={team.id}
       members={members}
       canManage={canManage}
+      isOwner={isOwner}
       teamName={team.name}
     />
   );

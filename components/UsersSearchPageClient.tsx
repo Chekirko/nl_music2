@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sendInvitationAction } from "@/lib/actions/invitationActions";
 
@@ -32,6 +32,11 @@ const UsersSearchPageClient = ({
   const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setUsers(initialUsers);
+    setQuery(initialQuery);
+  }, [initialUsers, initialQuery]);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -107,7 +112,11 @@ const UsersSearchPageClient = ({
 
       {users.length === 0 ? (
         <p className="text-gray-600 text-sm">
-          {query ? "За цим запитом користувачів не знайдено." : "Введіть запит для пошуку користувачів."}
+          {!query
+            ? "Введіть запит для пошуку користувачів."
+            : query !== initialQuery
+            ? "Натисніть Пошук або Enter, щоб знайти користувачів."
+            : "За цим запитом користувачів не знайдено."}
         </p>
       ) : (
         <ul className="divide-y divide-gray-200 rounded border border-gray-200 bg-white/50">
