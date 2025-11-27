@@ -5,7 +5,9 @@ import { authConfig } from "@/configs/auth";
 import { connectToDB } from "@/utils/database";
 import User from "@/models/user";
 import Team from "@/models/teams";
+import Event from "@/models/event";
 import { canManageTeam } from "@/lib/permissions";
+import { createNotificationAction } from "@/lib/actions/notificationActions";
 
 export async function getActiveTeamAction() {
   const session = (await getServerSession(authConfig as any)) as any;
@@ -177,14 +179,124 @@ export async function deleteTeam(teamId: string) {
     if (!can.ok) return { success: false as const, error: can.message };
     await connectToDB();
 
-    // Pull team from all users and unset activeTeam where needed
-    await User.updateMany({ teams: teamId }, { $pull: { teams: teamId } });
-    await User.updateMany({ activeTeam: teamId }, { $unset: { activeTeam: 1 } });
+    // Витягуємо всіх користувачів команди
+    const members = await User.find({ teams: teamId })
+      .select("_id activeTeam")
+      .lean();
 
+    // Прибираємо команду з масиву команд у всіх користувачів
+    await User.updateMany({ teams: teamId }, { $pull: { teams: teamId } });
+
+    // Обнуляємо activeTeam, якщо вона вказувала на цю команду
+    const usersWithActiveTeam = members
+      .filter((u: any) => String(u.activeTeam) === String(teamId))
+      .map((u: any) => u._id);
+    if (usersWithActiveTeam.length) {
+      await User.updateMany(
+        { _id: { $in: usersWithActiveTeam } },
+        { $unset: { activeTeam: 1 } }
+      );
+    }
+
+    // Видаляємо саму команду
     await Team.deleteOne({ _id: teamId });
+
+    // Видаляємо всі події (списки) цієї команди
+    await Event.deleteMany({ team: teamId });
+
     return { success: true as const };
   } catch (e) {
     console.error("deleteTeam error", e);
     return { success: false as const, error: "Failed to delete team" };
+  }
+}
+
+export async function updateTeamMemberRoleAction(params: {
+  teamId: string;
+  userId: string;
+  role: "admin" | "editor" | "member";
+}) {
+  try {
+    const can = await canManageTeam(params.teamId);
+    if (!can.ok) return { success: false as const, error: can.message };
+    await connectToDB();
+
+    const validRoles = ["admin", "editor", "member"];
+    if (!validRoles.includes(params.role)) {
+      return { success: false as const, error: "Invalid role" };
+    }
+
+    const teamDoc = await Team.findById(params.teamId)
+      .select("name")
+      .lean();
+
+    const res = await Team.updateOne(
+      { _id: params.teamId, "members.user": params.userId },
+      { $set: { "members.$.role": params.role } }
+    );
+    if (!res.matchedCount) {
+      return { success: false as const, error: "Member not found in team" };
+    }
+
+    await createNotificationAction({
+      userId: params.userId,
+      type: "role_change",
+      data: {
+        teamId: params.teamId,
+        teamName: teamDoc?.name || "",
+        role: params.role,
+      },
+    });
+
+    return { success: true as const };
+  } catch (e) {
+    console.error("updateTeamMemberRoleAction error", e);
+    return { success: false as const, error: "Failed to update member role" };
+  }
+}
+
+export async function removeTeamMemberAction(params: {
+  teamId: string;
+  userId: string;
+}) {
+  try {
+    const can = await canManageTeam(params.teamId);
+    if (!can.ok) return { success: false as const, error: can.message };
+    await connectToDB();
+
+    const teamDoc = await Team.findById(params.teamId)
+      .select("name")
+      .lean();
+
+    const res = await Team.updateOne(
+      { _id: params.teamId },
+      { $pull: { members: { user: params.userId } } }
+    );
+    if (!res.modifiedCount) {
+      return { success: false as const, error: "Member not found in team" };
+    }
+
+    await User.updateOne(
+      { _id: params.userId },
+      { $pull: { teams: params.teamId } }
+    );
+    await User.updateOne(
+      { _id: params.userId, activeTeam: params.teamId },
+      { $unset: { activeTeam: "" } }
+    );
+
+    await createNotificationAction({
+      userId: params.userId,
+      type: "removed_from_team",
+      data: {
+        teamId: params.teamId,
+        teamName: teamDoc?.name || "",
+      },
+    });
+
+    return { success: true as const };
+  } catch (e) {
+    console.error("removeTeamMemberAction error", e);
+    return { success: false as const, error: "Failed to remove member from team" };
   }
 }

@@ -119,14 +119,16 @@ export default function ProfileClient({ activeTeamId, teams }: Props) {
               const isSubmitting = submittingId === t.id;
               return (
                 <li key={t.id} className="flex items-center justify-between p-3 rounded hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium">{t.name}</span>
+                  <Link href={`/teams/${t.id}`} className="flex items-center gap-3">
+                    <span className="font-medium text-blue-700 hover:underline">
+                      {t.name}
+                    </span>
                     {isActive && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 border border-blue-300" role="status" aria-label="Активна команда">
                         Активна
                       </span>
                     )}
-                  </div>
+                  </Link>
                   {!isActive && (
                     <button
                       onClick={() => makeActive(t.id)}

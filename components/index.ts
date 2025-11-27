@@ -17,6 +17,7 @@ import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
 import TeamScopeFilter from "./TeamScopeFilter";
 import ActiveTeamBadge from "./ActiveTeamBadge";
+import NotificationBell from "./NotificationBell";
 import SearchTitleForEvent from "./SearchTitleForEvent";
 import EventFormBlock from "./EventFormBlock";
 import AgreeModal from "./AgreeModal";
@@ -45,6 +46,7 @@ export {
   Providers,
   TeamScopeFilter,
   ActiveTeamBadge,
+  NotificationBell,
   YearAccordion,
   EventsPageComponent,
   SearchTitleForEvent,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { AuthLinks, NavDropdownMenu, NavLinks, ActiveTeamBadge } from ".";
+import { AuthLinks, NavDropdownMenu, NavLinks, ActiveTeamBadge, NotificationBell } from ".";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
 import { signOut, useSession } from "next-auth/react";
 
@@ -46,6 +46,7 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-4">
           <NavLinks />
           <ActiveTeamBadge />
+          <NotificationBell />
           {pinned && (
             <div className="flex items-center gap-2">
               <Link
@@ -130,6 +131,9 @@ const Navbar = () => {
             <NavLinks handleClick={handleSmallerScreensNavigation} />
             <div className="self-center mt-6">
               <ActiveTeamBadge />
+            </div>
+            <div className="self-center mt-4">
+              <NotificationBell />
             </div>
 
             {session?.data ? (
