@@ -19,7 +19,7 @@ export default async function ProfilePage() {
   }
 
   await connectToDB();
-  const user = await User.findOne({ email: session.user.email }).lean();
+  const user = await User.findOne({ email: session.user.email }).lean() as any;
   
   if (!user) {
      redirect("/login-page");
