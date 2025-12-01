@@ -11,12 +11,28 @@ const Navbar = () => {
   const session = useSession();
   const [menuIcon, setMenuIcon] = useState(false);
   const [pinned, setPinned] = useState<{ id: string; title: string } | null>(null);
+  const [hasActiveTeam, setHasActiveTeam] = useState(false);
 
   const handleSmallerScreensNavigation = () => {
     setMenuIcon(!menuIcon);
   };
 
   useEffect(() => {
+    const checkActiveTeam = async () => {
+      if (session.status === "authenticated") {
+        const { getActiveTeamAction } = await import("@/lib/actions/teamActions");
+        const res = await getActiveTeamAction();
+        setHasActiveTeam(!!res.success && !!res.team);
+      } else {
+        setHasActiveTeam(false);
+      }
+    };
+
+    checkActiveTeam();
+
+    const onTeamChanged = () => checkActiveTeam();
+    window.addEventListener("active-team-changed", onTeamChanged);
+    
     const read = () => {
       try {
         const raw = localStorage.getItem("pinnedEvent");
@@ -32,8 +48,9 @@ const Navbar = () => {
     return () => {
       window.removeEventListener("storage", onChange);
       window.removeEventListener("pinned-event-changed", onChange as any);
+      window.removeEventListener("active-team-changed", onTeamChanged);
     };
-  }, []);
+  }, [session.status]);
 
   return (
     <header className="w-full bg-gray-900">
@@ -44,7 +61,7 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden lg:flex items-center gap-4">
-          <NavLinks />
+          <NavLinks hasActiveTeam={hasActiveTeam} />
           <ActiveTeamBadge />
           <NotificationBell />
           {pinned && (
@@ -128,7 +145,7 @@ const Navbar = () => {
                 </button>
               </div>
             )}
-            <NavLinks handleClick={handleSmallerScreensNavigation} />
+            <NavLinks handleClick={handleSmallerScreensNavigation} hasActiveTeam={hasActiveTeam} />
             <div className="self-center mt-6">
               <ActiveTeamBadge />
             </div>

@@ -1,5 +1,5 @@
 ﻿"use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getActiveTeamAction, getUserTeamsAction, setActiveTeamAction } from "@/lib/actions/teamActions";
 
@@ -9,6 +9,7 @@ export default function ActiveTeamBadge() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
     const t = await getActiveTeamAction();
@@ -35,13 +36,26 @@ export default function ActiveTeamBadge() {
     };
   }, []);
 
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const changeTeam = async (id: string) => {
     const res = await setActiveTeamAction(id);
     if (res.success) {
       await load();
       setOpen(false);
       try {
-        window.dispatchEvent(new CustomEvent("active-team-changed"));
+        window.dispatchEvent(new CustomEvent("active-team-changed", { detail: { teamId: id } }));
       } catch {}
       try {
         localStorage.removeItem("pinnedEvent");
@@ -53,7 +67,7 @@ export default function ActiveTeamBadge() {
 
   if (!team?.name) return null;
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
         type="button"
         className="px-3 py-1 rounded-full border border-blue-500 text-blue-100 text-sm hover:bg-blue-600/10"

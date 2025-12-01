@@ -122,3 +122,103 @@ export async function searchUsersForTeamAction(params: {
   }
 }
 
+
+
+export async function updateProfileAction(params: {
+  name?: string;
+  nickname?: string;
+  image?: string;
+  instrument?: string;
+  activeTeamId?: string | null;
+}) {
+  try {
+    const session = await getSessionUser();
+    if (!session) {
+      return { success: false as const, error: "Unauthorized" };
+    }
+
+    await connectToDB();
+
+    const user = await User.findById(session._id);
+    if (!user) {
+      return { success: false as const, error: "User not found" };
+    }
+
+    // Handle Cloudinary image deletion if image is changed
+    if (params.image && user.image && user.image !== params.image) {
+      try {
+        const cloudinary = await import("cloudinary");
+        cloudinary.v2.config({
+          cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+
+        // Extract public_id from the old image URL
+        const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/;
+        const match = user.image.match(regex);
+        if (match && match[1]) {
+           await cloudinary.v2.uploader.destroy(match[1]);
+        }
+      } catch (err) {
+        console.error("Failed to delete old image from Cloudinary:", err);
+      }
+    }
+
+    // Update User fields
+    if (params.name) user.name = params.name;
+    if (params.nickname !== undefined) user.nickname = params.nickname;
+    if (params.image) user.image = params.image;
+
+    await user.save();
+
+    // Update Instrument in Active Team
+    if (params.activeTeamId && params.instrument !== undefined) {
+      const team = await Team.findOne({
+        _id: params.activeTeamId,
+        "members.user": user._id,
+      });
+
+      if (team) {
+        await Team.updateOne(
+          { _id: params.activeTeamId, "members.user": user._id },
+          { $set: { "members.$.instrument": params.instrument } }
+        );
+      }
+    }
+
+    return { success: true as const };
+  } catch (error) {
+    console.error("updateProfileAction error", error);
+    return { success: false as const, error: "Failed to update profile" };
+  }
+}
+
+export async function getUserInstrumentAction(teamId: string) {
+  try {
+    const session = await getSessionUser();
+    if (!session) {
+      return { success: false as const, error: "Unauthorized" };
+    }
+
+    await connectToDB();
+
+    const team = await Team.findOne({
+      _id: teamId,
+      "members.user": session._id,
+    }).select("members");
+
+    if (!team) {
+      return { success: false as const, error: "Team not found or not a member" };
+    }
+
+    const member = (team as any).members.find(
+      (m: any) => String(m.user) === String(session._id)
+    );
+
+    return { success: true as const, instrument: member?.instrument || "" };
+  } catch (error) {
+    console.error("getUserInstrumentAction error", error);
+    return { success: false as const, error: "Failed to fetch instrument" };
+  }
+}

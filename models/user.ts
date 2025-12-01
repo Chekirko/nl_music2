@@ -10,6 +10,12 @@ const UserSchema = new Schema({
     required: [true, "please provide a valid email"],
     unique: true,
   },
+  image: {
+    type: String,
+  },
+  nickname: {
+    type: String,
+  },
   role: {
     type: String,
     required: true,

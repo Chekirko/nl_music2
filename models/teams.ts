@@ -11,6 +11,9 @@ const TeamMemberSchema = new Schema({
     enum: ["admin", "editor", "member"],
     default: "member",
   },
+  instrument: {
+    type: String,
+  },
   joinedAt: {
     type: Date,
     default: Date.now,
@@ -34,6 +37,17 @@ const TeamSchema = new Schema(
     },
     avatar: {
       type: String,
+    },
+    coverImage: {
+      type: String,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    church: {
+      type: String,
+      trim: true,
     },
     owner: {
       type: Schema.Types.ObjectId,

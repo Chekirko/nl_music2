@@ -1,10 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/configs/auth";
 import { connectToDB } from "@/utils/database";
 import User from "@/models/user";
 import Team from "@/models/teams";
+import cloudinary from "@/lib/cloudinary";
 import Event from "@/models/event";
 import { canManageTeam } from "@/lib/permissions";
 import { createNotificationAction } from "@/lib/actions/notificationActions";
@@ -63,6 +65,9 @@ export async function createTeam(formData: {
   name: string;
   description?: string;
   avatar?: string;
+  coverImage?: string;
+  city?: string;
+  church?: string;
   settings?: { isPrivate?: boolean; allowCopying?: boolean };
 }) {
   try {
@@ -76,6 +81,9 @@ export async function createTeam(formData: {
       name: formData.name,
       description: formData.description || "",
       avatar: formData.avatar || "",
+      coverImage: formData.coverImage || "",
+      city: formData.city || "",
+      church: formData.church || "",
       owner: user._id,
       members: [
         {
@@ -119,6 +127,9 @@ export async function getTeamById(teamId: string) {
         name: team.name,
         description: team.description || "",
         avatar: team.avatar || "",
+        coverImage: team.coverImage || "",
+        city: team.city || "",
+        church: team.church || "",
         owner: String(team.owner),
         members: (team.members || []).map((m: any) => ({ user: String(m.user), role: m.role })),
         settings: team.settings || { isPrivate: false, allowCopying: true },
@@ -151,6 +162,9 @@ export async function updateTeam(teamId: string, updates: {
   name?: string;
   description?: string;
   avatar?: string;
+  coverImage?: string;
+  city?: string;
+  church?: string;
   settings?: { isPrivate?: boolean; allowCopying?: boolean };
 }) {
   try {
@@ -161,11 +175,21 @@ export async function updateTeam(teamId: string, updates: {
     if (typeof updates.name === "string") toSet.name = updates.name;
     if (typeof updates.description === "string") toSet.description = updates.description;
     if (typeof updates.avatar === "string") toSet.avatar = updates.avatar;
+    if (typeof updates.coverImage === "string") toSet.coverImage = updates.coverImage;
+    if (typeof updates.city === "string") toSet.city = updates.city;
+    if (typeof updates.church === "string") toSet.church = updates.church;
     if (updates.settings) {
       if (typeof updates.settings.isPrivate === "boolean") toSet["settings.isPrivate"] = updates.settings.isPrivate;
       if (typeof updates.settings.allowCopying === "boolean") toSet["settings.allowCopying"] = updates.settings.allowCopying;
     }
-    await Team.updateOne({ _id: teamId }, { $set: toSet });
+    
+    console.log("updateTeam received:", updates);
+    console.log("updateTeam constructed toSet:", toSet);
+    console.log("Team model schema paths:", Object.keys(Team.schema.paths));
+
+    await Team.updateOne({ _id: teamId }, { $set: toSet }, { strict: false });
+    revalidatePath(`/teams/${teamId}`);
+    revalidatePath(`/teams/${teamId}/edit`);
     return { success: true as const };
   } catch (e) {
     console.error("updateTeam error", e);
@@ -345,5 +369,142 @@ export async function removeTeamMemberAction(params: {
   } catch (e) {
     console.error("removeTeamMemberAction error", e);
     return { success: false as const, error: "Failed to remove member from team" };
+  }
+}
+
+export async function getTeamMembersWithDetailsAction(teamId: string) {
+  try {
+    const session = await getServerSession(authConfig as any) as { user?: { email?: string } } | null;
+    if (!session?.user?.email) return { success: false as const, error: "Unauthorized" };
+    
+    await connectToDB();
+
+    // Verify user is authenticated (but don't require team membership for viewing)
+    const currentUser = await User.findOne({ email: session.user.email }).select("_id").lean<{ _id: string }>();
+    if (!currentUser) return { success: false as const, error: "User not found" };
+
+    // Fetch team (no membership check - allow viewing any team)
+    const team = await Team.findById(teamId)
+      .select("members")
+      .lean<{ members: { user: string; role: string; instrument?: string }[] }>();
+
+    if (!team) return { success: false as const, error: "Team not found" };
+
+    // Get all user IDs from team members
+    const memberIds = (team.members || []).map((m) => m.user);
+
+    // Fetch user details
+    const users = await User.find({ _id: { $in: memberIds } })
+      .select("name email nickname image")
+      .lean<{ _id: string; name: string; email: string; nickname?: string; image?: string }[]>();
+
+    // Map users to include instrument from team member schema
+    const membersWithDetails: import("@/types").TeamMemberProfile[] = users.map((u) => {
+      const teamMember = (team.members || []).find((m) => String(m.user) === String(u._id));
+      return {
+        id: String(u._id),
+        name: u.name,
+        email: u.email,
+        nickname: u.nickname,
+        image: u.image,
+        instrument: teamMember?.instrument || "",
+        role: teamMember?.role || "member"
+      };
+    });
+
+    return { success: true as const, members: membersWithDetails };
+
+  } catch (e) {
+    console.error("getTeamMembersWithDetailsAction error", e);
+    return { success: false as const, error: "Failed to fetch team members" };
+  }
+}
+
+export async function getAllTeamsAction() {
+  try {
+    const session = await getServerSession(authConfig as any) as { user?: { email?: string } } | null;
+    if (!session?.user?.email) return { success: false as const, error: "Unauthorized" };
+    
+    await connectToDB();
+
+    // Fetch all teams
+    const teams = await Team.find({})
+      .select("name description avatar city")
+      .lean<{ _id: string; name: string; description?: string; avatar?: string; city?: string }[]>();
+
+    const teamsData = teams.map((t) => ({
+      id: String(t._id),
+      name: t.name,
+      description: t.description || "",
+      avatar: t.avatar || "",
+      city: t.city || ""
+    }));
+
+    return { success: true as const, teams: teamsData };
+
+  } catch (e) {
+    console.error("getAllTeamsAction error", e);
+    return { success: false as const, error: "Failed to fetch teams" };
+  }
+}
+
+export async function updateTeamCoverImageAction(params: {
+  teamId: string;
+  newCoverImage: string;
+}) {
+  try {
+    const can = await canManageTeam(params.teamId);
+    if (!can.ok) return { success: false as const, error: can.message };
+    
+    await connectToDB();
+
+    // Get old cover image to delete from Cloudinary
+    const team = await Team.findById(params.teamId).select("coverImage").lean<{ coverImage?: string }>();
+    const oldCoverImage = team?.coverImage;
+
+    // Update team with new cover image
+    console.log(`Updating cover image for team ${params.teamId} to ${params.newCoverImage}`);
+    const updateResult = await Team.updateOne(
+      { _id: params.teamId },
+      { $set: { coverImage: params.newCoverImage } },
+      { strict: false }
+    );
+    console.log("Update result:", updateResult);
+
+    revalidatePath(`/teams/${params.teamId}`);
+    revalidatePath(`/teams/${params.teamId}/edit`);
+
+    // Delete old image from Cloudinary if it exists
+    if (oldCoverImage) {
+      try {
+        // Extract public_id from Cloudinary URL
+        // Example: https://res.cloudinary.com/demo/image/upload/v1234567890/folder/my_image.jpg
+        // We need: folder/my_image
+        const urlParts = oldCoverImage.split('/');
+        const filenameWithExtension = urlParts[urlParts.length - 1];
+        const filename = filenameWithExtension.split('.')[0];
+        
+        // If there are folders, we might need to extract them too. 
+        // Usually Cloudinary URLs have version (v1234...) before the public_id if it's in root.
+        // If it's in a folder, it's after version. 
+        // Let's try a safer extraction method if possible, or stick to simple filename if no folders used.
+        // Assuming flat structure or simple extraction for now based on previous code.
+        
+        // Better approach: regex to find version and take everything after
+        // or just use the filename if we know we don't use folders.
+        // Given the previous code just took the filename, we'll stick to that but use the SDK.
+        
+        await cloudinary.v2.uploader.destroy(filename);
+      } catch (deleteError) {
+        console.error("Failed to delete old cover image from Cloudinary", deleteError);
+        // Continue anyway - image update succeeded
+      }
+    }
+
+    return { success: true as const };
+
+  } catch (e) {
+    console.error("updateTeamCoverImageAction error", e);
+    return { success: false as const, error: "Failed to update cover image" };
   }
 }

@@ -150,12 +150,33 @@ export type CopySongResult =
   | { status: "same_team" }
   | { status: "forbidden"; reason: string }
   | { status: "error"; message: string };
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  image?: string;
+  nickname?: string;
+  activeTeam?: string;
+  teams?: string[];
+}
 
 export interface TeamMember {
   user: string;
   role: "admin" | "editor" | "member";
   joinedAt: Date;
   invitedBy?: string;
+  instrument?: string;
+}
+
+export interface TeamMemberProfile {
+  id: string;
+  name: string;
+  email: string;
+  nickname?: string;
+  image?: string;
+  instrument: string;
+  role: string;
 }
 
 export interface Team {
@@ -163,6 +184,9 @@ export interface Team {
   name: string;
   description?: string;
   avatar?: string;
+  coverImage?: string;
+  city?: string;
+  church?: string;
   owner: string;
   members: TeamMember[];
   settings: {

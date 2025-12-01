@@ -1,22 +1,40 @@
+
 "use client";
-import { useState, useTransition, useCallback, useEffect } from "react";
+import { useState, useTransition, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { setActiveTeamAction } from "@/lib/actions/teamActions";
+import Image from "next/image";
 
 type TeamItem = { id: string; name: string };
+
+interface UserData {
+  name: string;
+  email: string;
+  nickname: string;
+  image: string;
+  instrument: string;
+}
 
 interface Props {
   activeTeamId: string | null;
   teams: TeamItem[];
+  initialUser: UserData;
 }
 
-export default function ProfileClient({ activeTeamId, teams }: Props) {
+export default function ProfileClient({ activeTeamId, teams, initialUser }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [optimisticActiveId, setOptimisticActiveId] = useState<string | null>(null);
+
+  // Profile editing states
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<UserData>(initialUser);
+  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Враховуємо оптимістичний стан
   const displayActiveId = optimisticActiveId ?? activeTeamId;
@@ -77,6 +95,86 @@ export default function ProfileClient({ activeTeamId, teams }: Props) {
     }
   }, [router]);
 
+  // Fetch instrument when active team changes
+  useEffect(() => {
+    const fetchInstrument = async () => {
+      if (!displayActiveId) return;
+      
+      try {
+        const { getUserInstrumentAction } = await import("@/lib/actions/userActions");
+        const res = await getUserInstrumentAction(displayActiveId);
+        if (res.success) {
+          setFormData(prev => ({ ...prev, instrument: res.instrument || "" }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch instrument:", err);
+      }
+    };
+
+    fetchInstrument();
+  }, [displayActiveId]);
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      let imageUrl = formData.image;
+
+      // Upload image if changed (preview exists)
+      if (fileInputRef.current?.files?.[0]) {
+        const file = fileInputRef.current.files[0];
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+
+        const uploadRes = await fetch("/api/cloudinary", {
+          method: "POST",
+          body: formDataUpload,
+        });
+
+        if (!uploadRes.ok) throw new Error("Failed to upload image");
+        const uploadData = await uploadRes.json();
+        imageUrl = uploadData.url;
+      }
+
+      // Update profile
+      const { updateProfileAction } = await import("@/lib/actions/userActions");
+      const res = await updateProfileAction({
+        name: formData.name,
+        nickname: formData.nickname,
+        image: imageUrl,
+        instrument: formData.instrument,
+        activeTeamId: displayActiveId,
+      });
+
+      if (!res.success) throw new Error(res.error || "Failed to update profile");
+      
+      // Update local state with confirmed data
+      setFormData(prev => ({ ...prev, image: imageUrl }));
+      setPreviewImage(null);
+      setIsEditing(false);
+      router.refresh();
+
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+      setErrorMessage("Не вдалося зберегти профіль");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -102,6 +200,132 @@ export default function ProfileClient({ activeTeamId, teams }: Props) {
           </button>
         </div>
       )}
+
+      {/* Profile Info Section */}
+      <section className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">Основна інформація</h2>
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Редагувати
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+            <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200">
+              {(previewImage || formData?.image) ? (
+                <Image
+                  src={previewImage || formData.image || ''}
+                  alt="Profile"
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              )}
+              {isEditing && (
+                <label className="absolute inset-0 bg-black/50 flex items-center justify-center cursor-pointer opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="text-white text-sm font-medium">Змінити</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Fields */}
+          <div className="flex-grow space-y-4 max-w-lg">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ім'я</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <p className="text-gray-900">{formData.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <p className="text-gray-900">{formData.email}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Нікнейм</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.nickname}
+                  onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                  placeholder="Додайте нікнейм"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <p className="text-gray-900">{formData.nickname || <span className="text-gray-400 italic">Не вказано</span>}</p>
+              )}
+            </div>
+
+            {displayActiveId && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Інструмент (в активній команді)</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={formData.instrument}
+                    onChange={(e) => setFormData({ ...formData, instrument: e.target.value })}
+                    placeholder="Ваш інструмент"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                ) : (
+                  <p className="text-gray-900">{formData.instrument || <span className="text-gray-400 italic">Не вказано</span>}</p>
+                )}
+              </div>
+            )}
+
+            {isEditing && (
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isSaving ? "Збереження..." : "Зберегти"}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsEditing(false);
+                    setFormData(initialUser);
+                    setPreviewImage(null);
+                  }}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                >
+                  Скасувати
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="bg-white/5 p-6 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold mb-4">Мої команди</h2>
@@ -159,3 +383,4 @@ export default function ProfileClient({ activeTeamId, teams }: Props) {
     </div>
   );
 }
+

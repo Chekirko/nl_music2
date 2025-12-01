@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import type { Session } from "next-auth";
 import { authConfig } from "@/configs/auth";
-import { getTeamById, getTeamMembersWithDetailsAction, getActiveTeamAction } from "@/lib/actions/teamActions";
+import { getTeamById } from "@/lib/actions/teamActions";
 import { connectToDB } from "@/utils/database";
 import User from "@/models/user";
-import TeamProfile from "@/components/TeamProfile";
+import TeamEditForm  from "@/components/Teams/TeamEditForm";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +12,8 @@ interface PageProps {
   params: { teamId: string };
 }
 
-export default async function TeamPage({ params }: PageProps) {
-  const session = (await getServerSession(authConfig)) as Session | null;
+export default async function TeamEditPage({ params }: PageProps) {
+  const session = await getServerSession(authConfig);
   if (!session?.user?.email) {
     redirect("/login-page");
   }
@@ -26,13 +25,6 @@ export default async function TeamPage({ params }: PageProps) {
 
   const team = teamRes.team;
 
-  const membersRes = await getTeamMembersWithDetailsAction(params.teamId);
-  const members = membersRes.success ? membersRes.members : [];
-
-  // Check if this is the user's active team
-  const activeTeamRes = await getActiveTeamAction();
-  const isActiveTeam = activeTeamRes.success && activeTeamRes.team?.id === params.teamId;
-
   // Check if current user is admin
   await connectToDB();
   const currentUser = await User.findOne({ email: session.user.email }).select("_id").lean<{ _id: string }>();
@@ -41,16 +33,13 @@ export default async function TeamPage({ params }: PageProps) {
   const currentMember = team.members.find((m: any) => String(m.user) === currentUserId);
   const isAdmin = currentMember?.role === "admin" || team.owner === currentUserId;
 
+  if (!isAdmin) {
+    redirect("/denied");
+  }
+
   return (
-    <TeamProfile
-      teamName={team.name}
-      teamDescription={team.description}
-      teamCity={team.city}
-      teamChurch={team.church}
-      members={members}
-      isAdmin={isAdmin}
-      isActiveTeam={isActiveTeam}
-      teamId={team.id}
-    />
+    <div className="padding-x max-w-[1000px] mx-auto mt-10">
+      <TeamEditForm team={team} />
+    </div>
   );
 }

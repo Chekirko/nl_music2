@@ -11,6 +11,7 @@ import SearchTitle from "./SearchTitle";
 import SearchWord from "./SearchWord";
 import SongLink from "./SongLink";
 import NavDropdownMenu from "./NavDropdownMenu";
+import AboutDropdownMenu from "./AboutDropdownMenu";
 import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
@@ -40,6 +41,7 @@ export {
   SearchWord,
   SongLink,
   NavDropdownMenu,
+  AboutDropdownMenu,
   TagCard,
   NavLinks,
   AuthLinks,

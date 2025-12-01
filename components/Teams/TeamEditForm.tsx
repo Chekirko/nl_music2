@@ -1,33 +1,43 @@
 "use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createTeam } from "@/lib/actions/teamActions";
+import { updateTeam, updateTeamCoverImageAction } from "@/lib/actions/teamActions";
 import Image from "next/image";
 
-export default function CreateTeamForm() {
+interface TeamEditFormProps {
+  team: {
+    id: string;
+    name: string;
+    description?: string;
+    city?: string;
+    church?: string;
+    coverImage?: string;
+  };
+}
+
+export default function TeamEditForm({ team }: TeamEditFormProps) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [city, setCity] = useState("");
-  const [church, setChurch] = useState("");
-  const [coverImage, setCoverImage] = useState("");
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [name, setName] = useState(team.name);
+  const [description, setDescription] = useState(team.description || "");
+  const [city, setCity] = useState(team.city || "");
+  const [church, setChurch] = useState(team.church || "");
+  const [coverImage, setCoverImage] = useState(team.coverImage || "");
+  const [previewImage, setPreviewImage] = useState<string | null>(team.coverImage || null);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       setError("Будь ласка, виберіть файл зображення");
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Розмір файлу не повинен перевищувати 5MB");
       return;
@@ -50,11 +60,51 @@ export default function CreateTeamForm() {
       }
 
       const data = await response.json();
-      setCoverImage(data.url);
-      setPreviewImage(data.url);
+      
+      // Update cover image via Server Action (will delete old image)
+      const updateRes = await updateTeamCoverImageAction({
+        teamId: team.id,
+        newCoverImage: data.url,
+      });
+
+      if (updateRes.success) {
+        setCoverImage(data.url);
+        setPreviewImage(data.url);
+        setSuccess(true);
+        router.refresh();
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError(updateRes.error || "Помилка оновлення фото");
+      }
     } catch (err) {
       setError("Не вдалося завантажити зображення");
       console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!coverImage) return;
+
+    setUploading(true);
+    try {
+      const updateRes = await updateTeamCoverImageAction({
+        teamId: team.id,
+        newCoverImage: "",
+      });
+
+      if (updateRes.success) {
+        setCoverImage("");
+        setPreviewImage(null);
+        setSuccess(true);
+        router.refresh();
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError(updateRes.error || "Помилка видалення фото");
+      }
+    } catch (err) {
+      setError("Не вдалося видалити зображення");
     } finally {
       setUploading(false);
     }
@@ -64,21 +114,27 @@ export default function CreateTeamForm() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setSuccess(false);
+
     try {
-      const res = await createTeam({
+      const res = await updateTeam(team.id, {
         name: name.trim(),
         description: description.trim(),
         city: city.trim(),
         church: church.trim(),
-        coverImage: coverImage,
       });
+
       if (res.success) {
-        router.push("/profile");
+        setSuccess(true);
+        router.refresh();
+        setTimeout(() => {
+          router.push(`/teams/${team.id}`);
+        }, 1500);
       } else {
-        setError(res.error || "Помилка створення команди");
+        setError(res.error || "Помилка оновлення команди");
       }
     } catch (err) {
-      setError("Помилка створення команди");
+      setError("Помилка оновлення команди");
     } finally {
       setSubmitting(false);
     }
@@ -86,8 +142,10 @@ export default function CreateTeamForm() {
 
   return (
     <form onSubmit={onSubmit} className="max-w-2xl w-full space-y-6 bg-white/5 p-6 rounded-lg border border-gray-200">
-      <h2 className="text-xl font-bold text-blue-700">Створити команду</h2>
+      <h2 className="text-xl font-bold text-blue-700">Редагувати команду</h2>
+      
       {error && <div className="text-red-600 text-sm bg-red-50 p-3 rounded">{error}</div>}
+      {success && <div className="text-green-600 text-sm bg-green-50 p-3 rounded">Зміни збережено!</div>}
       
       <div className="space-y-2">
         <label className="block text-sm font-medium">Назва команди *</label>
@@ -157,11 +215,9 @@ export default function CreateTeamForm() {
             {previewImage && (
               <button
                 type="button"
-                onClick={() => {
-                  setCoverImage("");
-                  setPreviewImage(null);
-                }}
-                className="px-4 py-2 rounded border border-red-300 text-red-600 hover:bg-red-50 text-sm"
+                onClick={handleRemoveImage}
+                disabled={uploading}
+                className="px-4 py-2 rounded border border-red-300 text-red-600 hover:bg-red-50 text-sm disabled:opacity-60"
               >
                 Видалити
               </button>
@@ -175,20 +231,21 @@ export default function CreateTeamForm() {
             className="hidden"
           />
           <p className="text-xs text-gray-500">Рекомендований розмір: 1200x400px. Максимум 5MB.</p>
+          <p className="text-xs text-gray-400">Примітка: Зміна фото відбувається одразу після вибору файлу</p>
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-3 pt-4 border-t">
         <button
           type="submit"
           disabled={submitting || uploading}
           className="px-6 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 font-medium"
         >
-          {submitting ? "Створення..." : "Створити команду"}
+          {submitting ? "Збереження..." : "Зберегти зміни"}
         </button>
         <button 
           type="button" 
-          onClick={() => router.back()} 
+          onClick={() => router.push(`/teams/${team.id}`)} 
           className="px-6 py-2 rounded border border-gray-300 hover:bg-gray-50"
         >
           Скасувати
