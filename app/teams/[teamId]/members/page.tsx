@@ -45,11 +45,21 @@ export default async function TeamMembersPage({ params }: PageProps) {
   const membersRes = await getTeamMembersWithDetailsAction(params.teamId);
   const members = membersRes.success ? membersRes.members : [];
 
+  // Map to TeamMemberWithUser format expected by the client component
+  const mappedMembers = members.map((m) => ({
+    userId: m.id,
+    name: m.name,
+    email: m.email,
+    role: m.role as "admin" | "editor" | "member",
+    isOwner: team.owner === m.id,
+    isCurrentUser: currentUserId === m.id,
+  }));
+
   return (
     <TeamMembersPageClient
       teamId={team.id}
       teamName={team.name}
-      members={members}
+      members={mappedMembers}
       canManage={isAdmin}
       isOwner={isOwner}
     />
