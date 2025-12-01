@@ -52,6 +52,14 @@ export default function ActiveTeamBadge() {
   const changeTeam = async (id: string) => {
     const res = await setActiveTeamAction(id);
     if (res.success) {
+      // Check if we need to redirect (if currently on a team page)
+      if (team && pathname.includes(`/teams/${team.id}`)) {
+        const newPath = pathname.replace(team.id, id);
+        router.push(newPath);
+      } else {
+        try { router.refresh(); } catch {}
+      }
+      
       await load();
       setOpen(false);
       try {
@@ -61,7 +69,6 @@ export default function ActiveTeamBadge() {
         localStorage.removeItem("pinnedEvent");
         window.dispatchEvent(new CustomEvent("pinned-event-changed"));
       } catch {}
-      try { router.refresh(); } catch {}
     }
   };
 
