@@ -343,7 +343,7 @@ export default function ProfileClient({ activeTeamId, teams, initialUser }: Prop
               const isSubmitting = submittingId === t.id;
               return (
                 <li key={t.id} className="flex items-center justify-between p-3 rounded hover:bg-gray-50 transition-colors">
-                  <Link href={`/teams/${t.id}`} className="flex items-center gap-3">
+                  <Link href={`/teams/${t.id}/members`} className="flex items-center gap-3">
                     <span className="font-medium text-blue-700 hover:underline">
                       {t.name}
                     </span>

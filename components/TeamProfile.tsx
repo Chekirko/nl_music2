@@ -28,21 +28,33 @@ export default function TeamProfile({
       <div className="mx-auto max-w-screen-xl px-4 py-8 lg:px-6 lg:py-16">
         {/* Team Header */}
         <div className="mx-auto mb-8 max-w-screen-md text-center">
-          {isAdmin && isActiveTeam && teamId && (
-            <div className="flex justify-center mb-6">
+          {/* Admin/Member Actions */}
+          <div className="flex justify-center gap-3 mb-6">
+            {(isAdmin || isActiveTeam) && teamId && (
+              <Link
+                href={`/teams/${teamId}/members`}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                </svg>
+                <span>Учасники</span>
+              </Link>
+            )}
+            
+            {isAdmin && isActiveTeam && teamId && (
               <Link
                 href={`/teams/${teamId}/edit`}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                 </svg>
-                Редагувати команду
+                <span>Редагувати</span>
               </Link>
-            </div>
-          )}
+            )}
+          </div>
           
-          {/* Team Info */}
           {/* Team Info */}
           <div className="mt-6 space-y-3 text-left bg-gray-50 p-6 rounded-lg border border-gray-200">
             <div>

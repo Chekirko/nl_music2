@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   updateTeamMemberRoleAction,
   removeTeamMemberAction,
@@ -198,9 +199,16 @@ const TeamMembersPageClient = ({
   return (
     <div className="padding-x max-w-[900px] mx-auto mt-10 space-y-8">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-blue-700">
-          Учасники команди{teamName ? ` «${teamName}»` : ""}
-        </h1>
+        <div className="flex items-center gap-4">
+          <Link href={`/teams/${teamId}`} className="text-blue-600 hover:text-blue-800">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </Link>
+          <h1 className="text-2xl font-bold text-blue-700">
+            Учасники команди{teamName ? ` «${teamName}»` : ""}
+          </h1>
+        </div>
         {isOwner && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
