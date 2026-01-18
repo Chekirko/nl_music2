@@ -183,7 +183,7 @@ export const defaultSong = {
   _id: "1",
   title: "",
   rythm: "",
-  tags: "",
+  tags: [],
   comment: "",
   key: "",
   mode: "",

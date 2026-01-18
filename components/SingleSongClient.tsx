@@ -24,6 +24,7 @@ import EditTonalModal from "@/components/EditTonalModal";
 import { createProgression } from "@/lib/progression";
 import { updateSongAction, deleteSong as deleteSongAction } from "@/lib/actions/songActions";
 import CopySongButton from "@/components/CopySongButton";
+import { TagBadge } from "@/components/tags";
 
 interface Props {
   id: string;
@@ -254,7 +255,8 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyCont
     updateSong(updatedSong);
   };
 
-  const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
+  // Теги тепер масив
+  const tags = song?.tags?.length > 0 ? song.tags : null;
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -335,14 +337,11 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyCont
         <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
         <div className="flex flex-wrap gap-2">
           {tags && tags.map((tag) => (
-            <button
-              className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
+            <TagBadge
               key={tag}
-              type="button"
+              name={tag}
               onClick={() => router.push(`/songs/tags/${tag}?forwardedTag=${tag}`)}
-            >
-              {tag}
-            </button>
+            />
           ))}
         </div>
         {tags && <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>}

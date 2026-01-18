@@ -1,7 +1,6 @@
 "use client";
 
 import { GettedSong } from "@/types";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { TagCard } from "@/components";
@@ -10,6 +9,7 @@ const TagPage = () => {
   const searchParams = useSearchParams();
   const forwardedTag = searchParams.get("forwardedTag");
   const [songs, setSongs] = useState<GettedSong[]>([]);
+
   useEffect(() => {
     const fetchSongs = async () => {
       const response = await fetch("/api/songs", {
@@ -22,10 +22,16 @@ const TagPage = () => {
     fetchSongs();
   }, []);
 
+  // Фільтруємо по масиву тегів
   const filteredSongs = forwardedTag
-    ? songs.filter((song) =>
-        song.tags?.toLowerCase().includes(forwardedTag.toLowerCase())
-      )
+    ? songs.filter((song) => {
+        const songTags = song.tags;
+        // tags тепер завжди масив (string[])
+        if (!songTags || songTags.length === 0) return false;
+        return songTags.some(
+          (t: string) => t.toLowerCase() === forwardedTag.toLowerCase()
+        );
+      })
     : null;
 
   return (

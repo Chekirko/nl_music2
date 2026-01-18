@@ -14,7 +14,8 @@ const SongSchema = new Schema({
     required: [false, "Comment is not required"],
   },
   tags: {
-    type: String,
+    type: [String],
+    default: [],
     required: [false, "Tags is not required"],
   },
   key: {
@@ -23,7 +24,7 @@ const SongSchema = new Schema({
   },
   mode: {
     type: String,
-    required: [false, "Video is not required"],
+    required: [false, "Mode is not required"],
   },
   blocks: {
     type: [

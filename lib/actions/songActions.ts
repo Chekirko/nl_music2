@@ -13,6 +13,8 @@ import type {
   SongCopyConflictPreview,
   Team as TeamInfo,
 } from "@/types";
+import { updateTagCounts } from "@/lib/actions/tagActions";
+import { parseTags } from "@/lib/tagHelpers";
 import { canCreateSong, canEditSong, canDeleteSong, requireActiveTeam } from "@/lib/permissions";
 import mongoose from "mongoose";
 
@@ -67,7 +69,7 @@ function mapSongDocument(doc: any): GettedSong {
     _id: String(doc._id),
     title: doc.title || "",
     rythm: doc.rythm || "",
-    tags: doc.tags || "",
+    tags: parseTags(doc.tags),
     comment: doc.comment || "",
     key: doc.key || "",
     mode: doc.mode || "",
@@ -292,7 +294,18 @@ export async function deleteSong(
       return { success: false, error: allowed.message };
     }
     await connectToDB();
+
+    // Отримуємо теги пісні перед видаленням
+    const song = await Song.findById(songId).select("tags").lean();
+    const songTags = parseTags((song as { tags?: string | string[] })?.tags);
+
     await Song.findByIdAndDelete(songId);
+
+    // Декремент лічильників тегів
+    if (songTags.length > 0) {
+      await updateTagCounts(songTags, []);
+    }
+
     revalidatePath("/songs");
     revalidatePath(`/songs/${songId}`);
     return { success: true };
@@ -313,7 +326,7 @@ export async function updateSongAction(formData: {
   _id: string | number;
   title: string;
   rythm: string;
-  tags: string;
+  tags: string[];
   comment: string;
   key: string;
   mode: string;
@@ -329,13 +342,18 @@ export async function updateSongAction(formData: {
     }
     await connectToDB();
 
+    // Отримуємо старі теги для порівняння
+    const existingSong = await Song.findById(formData._id).select("tags").lean();
+    const oldTags = parseTags((existingSong as { tags?: string | string[] })?.tags);
+    const newTags = formData.tags.map(t => t.toLowerCase().trim()).filter(t => t.length > 0);
+
     const updated = await Song.findByIdAndUpdate(
       formData._id,
       {
         title: formData.title,
         comment: formData.comment,
         rythm: formData.rythm,
-        tags: formData.tags,
+        tags: newTags,
         key: formData.key,
         mode: formData.mode,
         origin: formData.origin,
@@ -345,6 +363,9 @@ export async function updateSongAction(formData: {
       },
       { new: true, runValidators: true }
     );
+
+    // Оновлюємо лічильники тегів
+    await updateTagCounts(oldTags, newTags);
 
     if (!updated) {
       return { success: false, error: "Song not found" };
@@ -371,7 +392,7 @@ export async function createSongAction(formData: {
   title: string;
   comment: string;
   rythm: string;
-  tags: string;
+  tags: string[];
   key: string;
   mode: string;
   origin: string;
@@ -408,11 +429,14 @@ export async function createSongAction(formData: {
       ind: Number(b.ind),
     }));
 
+    // Нормалізуємо теги
+    const normalizedTags = formData.tags.map(t => t.toLowerCase().trim()).filter(t => t.length > 0);
+
     const newSong = new (Song as any)({
       title: formData.title,
       comment: formData.comment,
       rythm: formData.rythm,
-      tags: formData.tags,
+      tags: normalizedTags,
       key: formData.key,
       mode: formData.mode,
       origin: formData.origin,
@@ -425,6 +449,9 @@ export async function createSongAction(formData: {
     });
 
     await newSong.save();
+
+    // Оновлюємо лічильники тегів (нова пісня — старих тегів немає)
+    await updateTagCounts([], normalizedTags);
 
     const serialized = JSON.parse(JSON.stringify(newSong)) as GettedSong;
     const songId = (newSong as any)._id ? String((newSong as any)._id) : (serialized as any)._id;
@@ -654,11 +681,14 @@ export async function copySongToActiveTeamAction(params: {
       ? original.blocks.map((block) => ({ ...block }))
       : [];
 
+    // Парсимо теги з оригіналу
+    const copiedTags = parseTags(original.tags);
+
     const newSong = new Song({
       title: desiredTitle,
       comment: original.comment || "",
       rythm: original.rythm || "",
-      tags: original.tags || "",
+      tags: copiedTags,
       key: original.key || "",
       mode: original.mode || "",
       origin: original.origin || "",
@@ -674,6 +704,11 @@ export async function copySongToActiveTeamAction(params: {
     });
 
     await newSong.save();
+
+    // Інкремент лічильників тегів для скопійованої пісні
+    if (copiedTags.length > 0) {
+      await updateTagCounts([], copiedTags);
+    }
 
     revalidatePath("/songs");
     revalidatePath(`/songs/${String(newSong._id)}`);

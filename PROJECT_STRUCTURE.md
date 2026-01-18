@@ -2,7 +2,7 @@
 
 > **Comprehensive Deep-Dive Audit** of the Church Worship Song Management Platform
 >
-> Last Updated: January 10, 2026
+> Last Updated: January 19, 2026
 
 ---
 
@@ -146,7 +146,7 @@ erDiagram
 | `key` | String | ✓ | Musical key (e.g., "C", "Dm", "F#m") |
 | `mode` | String | | Musical mode |
 | `rythm` | String | | Rhythm pattern |
-| `tags` | String | | Comma-separated tags |
+| `tags` | [String] | | Array of normalized tags (lowercase, kebab-case) |
 | `comment` | String | | Notes about the song |
 | `origin` | String | | Source URL |
 | `video` | String | | Embedded YouTube URL |
@@ -229,6 +229,17 @@ erDiagram
 | `createdAt` | Date | | Auto-generated |
 
 **Index:** `{ user: 1, isRead: 1 }` - Fast unread count queries
+
+#### Tag Collection
+
+| Field | Type | Required | Description |
+|-------|------|----------|--------------|
+| `name` | String | ✓ | Unique tag name (lowercase, trimmed) |
+| `songsCount` | Number | | Count of songs using this tag (auto-updated) |
+| `createdAt` | Date | | Auto-generated |
+| `updatedAt` | Date | | Auto-generated |
+
+**Index:** `{ name: 1 }` (unique) - Fast tag lookup
 
 ---
 
@@ -336,18 +347,18 @@ export const config = {
 
 ### Server Actions Overview (`lib/actions/`)
 
-#### songActions.ts (688 lines)
+#### songActions.ts (720+ lines)
 
 | Function | Description |
 |----------|-------------|
 | `getSongs(filter, page, searchQuery, scope)` | Paginated song retrieval with filters (all/pop/rare) |
 | `searchSongsAction({q, filter, scope, mode})` | Search by title or lyrics text |
 | `getSongById(id)` | Fetch single song with team/copy info populated |
-| `createSongAction(formData)` | Create new song with uniqueness check per team |
-| `updateSongAction(formData)` | Update song (requires editor role) |
-| `deleteSong(songId)` | Delete song (requires admin role) |
+| `createSongAction(formData)` | Create new song with tags array, updates Tag counts |
+| `updateSongAction(formData)` | Update song, recalculates tag counts (requires editor role) |
+| `deleteSong(songId)` | Delete song, decrements tag counts (requires admin role) |
 | `getSongCopyContext(songId)` | Determine if user can copy a song |
-| `copySongToActiveTeamAction({songId, titleOverride?})` | Copy song to user's active team |
+| `copySongToActiveTeamAction({songId, titleOverride?})` | Copy song to user's active team, updates tag counts |
 
 #### teamActions.ts (511 lines)
 
@@ -409,6 +420,37 @@ export const config = {
 | `deleteNotificationAction(id)` | Delete notification |
 | `markInvitationNotificationHandledAction(id)` | Mark invite as handled |
 
+#### tagActions.ts (72 lines)
+
+| Function | Description |
+|----------|-------------|
+| `updateTagCounts(oldTags, newTags)` | Update songsCount when tags change |
+| `getAllTags()` | Get all tags sorted by popularity |
+| `searchTags(query)` | Search tags for autocomplete (limit 10) |
+
+#### permissions.ts - RBAC System
+
+| Function | Description |
+|----------|-------------|
+| `getSessionUser()` | Get authenticated user |
+| `requireActiveTeam()` | Require user has active team |
+| `getUserRoleInTeam(userId, teamId)` | Get user's role in team |
+| `getActiveTeamAndRole()` | Combined check for auth + team + role |
+| `canCreateSong()` | Check song creation permission |
+| `canEditSong(songId)` | Check song edit permission |
+| `canDeleteSong(songId)` | Check song delete permission |
+| `canManageTeam(teamId)` | Check team admin permission |
+| `canCreateEvent()` | Check event creation permission |
+| `canEditEvent(eventId)` | Check event edit permission |
+| `canDeleteEvent(eventId)` | Check event delete permission |
+
+#### tagHelpers.ts - Tag Utilities
+
+| Function | Description |
+|----------|-------------|
+| `normalizeTag(tag)` | Normalize tag: lowercase, trim |
+| `parseTags(tags)` | Parse tags from string or array format |
+
 ### Utility Functions (`lib/`)
 
 #### chords.ts - Music Theory
@@ -426,22 +468,6 @@ export const config = {
 | Function | Description |
 |----------|-------------|
 | `createProgression(mode)` | Generate chromatic progression from tonal |
-
-#### permissions.ts - RBAC System
-
-| Function | Description |
-|----------|-------------|
-| `getSessionUser()` | Get authenticated user |
-| `requireActiveTeam()` | Require user has active team |
-| `getUserRoleInTeam(userId, teamId)` | Get user's role in team |
-| `getActiveTeamAndRole()` | Combined check for auth + team + role |
-| `canCreateSong()` | Check song creation permission |
-| `canEditSong(songId)` | Check song edit permission |
-| `canDeleteSong(songId)` | Check song delete permission |
-| `canManageTeam(teamId)` | Check team admin permission |
-| `canCreateEvent()` | Check event creation permission |
-| `canEditEvent(eventId)` | Check event edit permission |
-| `canDeleteEvent(eventId)` | Check event delete permission |
 
 **Role Permissions Matrix:**
 
@@ -713,6 +739,30 @@ Radix-based primitives with consistent styling:
 | `Form` | Song creation/edit form |
 | `AgreeModal` | Confirmation dialogs |
 
+### Tag System Components (`components/tags/`)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `TagBadge` | `TagBadge.tsx` | Display single tag badge with optional remove button |
+| `TagInput` | `TagInput.tsx` | Interactive tag input with autocomplete, validation |
+
+### Song Block System
+
+Songs are structured using **blocks** with different display versions:
+
+| Version | Description | Display |
+|---------|-------------|---------|
+| 1 | Words + Chords | Alternating lines (chords above lyrics) |
+| 2 | Words only | Lyrics text without chord notation |
+| 3 | Chords only | Chord progressions without lyrics |
+
+**Form Component Features (`Form.tsx`):**
+- Dynamic block addition/removal (start with 5, add more as needed)
+- Tonality selector dropdown (all musical keys: C, C#, D, D#, E, F, F#, G, G#, A, A#, B + minor variants)
+- Block type selector (version 1/2/3)
+- Tag input with autocomplete suggestions from existing tags
+- Drag-and-drop block reordering (via `@hello-pangea/dnd`)
+
 ### State Management
 
 **Zustand Store:** `store/eventStore.ts`
@@ -771,8 +821,7 @@ nl_music2/
 ├── utils/                  # Utilities
 │   └── database.ts         # MongoDB connection
 ├── public/                 # Static assets
-├── archive/                # Deprecated code
-└── scripts/                # Build scripts
+└── archive/                # Deprecated code
 ```
 
 ---

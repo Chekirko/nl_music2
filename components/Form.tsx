@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SongBlock } from ".";
 import AgreeModal from "./AgreeModal";
 import { AVAILABLE_KEYS } from "@/constants";
+import { TagInput } from "@/components/tags";
 import {
   Select,
   SelectContent,
@@ -127,11 +128,11 @@ const Form = ({
           <span className="font-satoshi font-semibold text-base text-gray-700">
             Теги (Ключові слова для пошуку за темами)
           </span>
-          <input
-            value={song.tags}
-            onChange={(e) => setSong({ ...song, tags: e.target.value })}
-            placeholder="Напиши через пробіл ключові слова, напр.: спомин хвала і т д"
-            className="form_input"
+          <TagInput
+            tags={song.tags}
+            onChange={(tags) => setSong({ ...song, tags })}
+            maxTags={5}
+            placeholder="Введіть тег і натисніть Enter..."
           />
         </label>
 

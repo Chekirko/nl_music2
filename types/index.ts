@@ -106,7 +106,7 @@ export interface GettedSong {
   _id: string;
   title: string;
   rythm: string;
-  tags: string;
+  tags: string[];
   comment: string;
   key: string;
   mode: string;
