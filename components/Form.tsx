@@ -1,7 +1,15 @@
-import { FormProps } from "@/types";
+import { FormProps, Block } from "@/types";
 import Link from "next/link";
 import { SongBlock } from ".";
 import AgreeModal from "./AgreeModal";
+import { AVAILABLE_KEYS } from "@/constants";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Form = ({
   type,
@@ -12,6 +20,27 @@ const Form = ({
   question,
   descr,
 }: FormProps) => {
+  const addBlock = () => {
+    const maxInd = Math.max(...song.blocks.map((b) => Number(b.ind)), 0);
+    const newBlock: Block = {
+      name: "",
+      version: "1",
+      lines: "",
+      ind: String(maxInd + 1),
+    };
+    setSong({ ...song, blocks: [...song.blocks, newBlock] });
+  };
+
+  const removeBlock = (index: number) => {
+    if (song.blocks.length <= 1) return;
+    const updatedBlocks = song.blocks.filter((_, i) => i !== index);
+    setSong({ ...song, blocks: updatedBlocks });
+  };
+
+  const handleKeyChange = (value: string) => {
+    setSong({ ...song, key: value });
+  };
+
   return (
     <section className="w-full max-w-full flex-start flex-col">
       <h1 className="head_text text-left">
@@ -50,31 +79,37 @@ const Form = ({
           />
         </label>
 
-        <label>
-          <span className="font-satoshi font-semibold text-base text-gray-700">
-            Тональність
-          </span>
-          <input
-            value={song.key}
-            onChange={(e) => setSong({ ...song, key: e.target.value })}
-            placeholder="Як грати?"
-            required
-            className="form_input"
-          />
-        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <span className="font-satoshi font-semibold text-base text-gray-700 block mb-2">
+              Тональність
+            </span>
+            <Select value={song.key} onValueChange={handleKeyChange}>
+              <SelectTrigger className="w-full bg-white h-10">
+                <SelectValue placeholder="Оберіть тональність" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                {AVAILABLE_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {key}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <label>
-          <span className="font-satoshi font-semibold text-base text-gray-700">
-            Ритм
-          </span>
-          <input
-            value={song?.rythm || ""}
-            onChange={(e) => setSong({ ...song, rythm: e.target.value })}
-            placeholder="Який ритм?"
-            required
-            className="form_input"
-          />
-        </label>
+          <div>
+            <span className="font-satoshi font-semibold text-base text-gray-700 block mb-2">
+              Ритм
+            </span>
+            <input
+              value={song?.rythm || ""}
+              onChange={(e) => setSong({ ...song, rythm: e.target.value })}
+              placeholder="Який ритм?"
+              className="form_input"
+            />
+          </div>
+        </div>
 
         <label>
           <span className="font-satoshi font-semibold text-base text-gray-700">
@@ -136,15 +171,32 @@ const Form = ({
           />
         </label>
 
-        {song.blocks.map((block, index) => (
-          <SongBlock
-            key={block.ind}
-            block={block}
-            index={index}
-            song={song}
-            setSong={setSong}
-          />
-        ))}
+        <div className="space-y-4">
+          <h3 className="font-satoshi font-semibold text-lg text-gray-800">
+            Блоки пісні
+          </h3>
+          
+          {song.blocks.map((block, index) => (
+            <SongBlock
+              key={block.ind}
+              block={block}
+              index={index}
+              song={song}
+              setSong={setSong}
+              onRemove={() => removeBlock(index)}
+              canRemove={song.blocks.length > 1}
+            />
+          ))}
+
+          <button
+            type="button"
+            onClick={addBlock}
+            className="w-full py-3 border-2 border-dashed border-blue-400 rounded-lg text-blue-600 hover:bg-blue-50 hover:border-blue-500 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <span className="text-lg">+</span>
+            Додати блок
+          </button>
+        </div>
 
         <div className="flex-end mx-3 mb-5 gap-4">
           <Link

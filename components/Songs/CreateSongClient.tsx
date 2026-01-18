@@ -6,7 +6,8 @@ import { defaultSong } from "@/constants";
 import { Form } from "@/components";
 import type { GettedSong } from "@/types";
 import { createSongAction } from "@/lib/actions/songActions";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const cloneDefaultSong = (): GettedSong =>
   JSON.parse(JSON.stringify(defaultSong)) as GettedSong;
@@ -36,7 +37,8 @@ const CreateSongClient = () => {
       });
 
       if (res.success) {
-        const id = (res as any).songId || (res.song as any)._id;
+        toast.success("Пісню успішно додано!");
+        const id = (res as { songId: string }).songId || (res as { song: GettedSong }).song._id;
         router.push(`/songs/${id}`);
       } else {
         if (res.error.includes("Active team")) {
@@ -66,6 +68,7 @@ const CreateSongClient = () => {
         question="Впевнений?"
         descr="Ти дійсно хочеш додати таку пісню? Подумай, може вона не сподобається іншим!"
       />
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 };

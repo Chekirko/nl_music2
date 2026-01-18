@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { Form } from "@/components";
 import type { GettedSong } from "@/types";
 import { updateSongAction } from "@/lib/actions/songActions";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Props {
   initialSong: GettedSong;
@@ -32,10 +34,14 @@ const UpdateSongClient = ({ initialSong }: Props) => {
         blocks: song.blocks,
       });
       if (res.success) {
+        toast.success("Пісню успішно оновлено!");
         router.push(`/songs/${song._id}`);
+      } else {
+        toast.error(res.error || "Не вдалося оновити пісню");
       }
     } catch (error) {
       console.error(error);
+      toast.error("Сталася помилка при оновленні пісні");
     } finally {
       setSubmitting(false);
     }
@@ -52,6 +58,7 @@ const UpdateSongClient = ({ initialSong }: Props) => {
         question="Підтвердити оновлення?"
         descr="Зміни будуть збережені та застосовані на сторінці пісні."
       />
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 };

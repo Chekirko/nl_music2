@@ -29,6 +29,8 @@ export interface SongBlockProps {
   block: Block;
   setSong: (song: GettedSong) => void;
   index: number;
+  onRemove?: () => void;
+  canRemove?: boolean;
 }
 
 export interface OurEvent {
