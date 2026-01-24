@@ -90,6 +90,15 @@ function mapSongDocument(doc: any): GettedSong {
   };
 }
 
+/**
+ * Server action to check if current user can create songs in their active team.
+ * Used by client components to conditionally show/hide creation UI.
+ */
+export async function checkCanCreateSongAction(): Promise<boolean> {
+  const access = await canCreateSong();
+  return access.ok;
+}
+
 export async function getSongs(
   filter?: string,
   page: number = 1,
