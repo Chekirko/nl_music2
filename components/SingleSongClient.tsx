@@ -306,7 +306,7 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyCont
             )}
           </button>
         </div>
-        <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
+        <div className="border-2 mt-5 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>
         <p className="mt-5">Початкова тональність: {song?.key}</p>
         {canEdit && (
           <div className="sm:flex items-center flex-wrap gap-x-4">
@@ -334,7 +334,7 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyCont
             </Link>
           </p>
         )}
-        <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
+        <div className="border-2 my-5 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>
         <div className="flex flex-wrap gap-2">
           {tags && tags.map((tag) => (
             <TagBadge
@@ -344,7 +344,7 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyCont
             />
           ))}
         </div>
-        {tags && <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>}
+        {tags && <div className="border-2 my-5 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>}
 
         <TonalChanger progression={progression} currentTonal={currentTonal!} changeTonal={changeTonal} submitting={submitting} />
 
@@ -449,21 +449,15 @@ const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyCont
             <SongLink route="/update-song" type="Змінити пісню" id={id} />
           </div>
         )}
-        <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
+        <div className="border-2 mb-6 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>
         {song?.video && song.video.trim() !== "" && (
-          <div>
+          <div className="w-full max-w-[500px]">
             <iframe
-              width="500"
-              height="281"
+              className="w-full aspect-video"
               src={song.video}
               title={song?.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             ></iframe>
-            <style jsx>{`
-              @media (max-width: 600px) {
-                iframe { width: 100%; }
-              }
-            `}</style>
           </div>
         )}
         {canDelete && (

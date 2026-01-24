@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import CreateSongLink from "@/components/CreateSongLink";
 import AddSongByLinkLink from "@/components/AddSongByLinkLink";
 import SongFilter from "@/components/SongFilter";
@@ -6,6 +7,15 @@ import { getActiveTeamAction } from "@/lib/actions/teamActions";
 import SongsFeed from "@/components/SongsFeed";
 import { SongFilters } from "@/constants/filters";
 import { getSongs } from "@/lib/actions/songActions";
+
+export const metadata: Metadata = {
+  title: "Пісні прославлення",
+  description: "Повний список пісень прославлення з акордами та текстами. Знайдіть пісню для вашого служіння.",
+  openGraph: {
+    title: "Пісні прославлення | NL Songs",
+    description: "Повний список пісень прославлення з акордами та текстами",
+  },
+};
 
 interface PageProps {
   searchParams: { filter?: string; page?: string; scope?: "team" | "all" };

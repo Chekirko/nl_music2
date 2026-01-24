@@ -1,7 +1,17 @@
+import type { Metadata } from "next";
 import { EventsPageComponent } from "@/components";
 import CreateEventLink from "@/components/CreateEventLink";
 import { getAllEvents } from "@/lib/actions/eventActions";
 import { getActiveTeamAction } from "@/lib/actions/teamActions";
+
+export const metadata: Metadata = {
+  title: "Події та Служіння",
+  description: "Календар подій та служінь з переліком пісень для кожного богослужіння.",
+  openGraph: {
+    title: "Події та Служіння | NL Songs",
+    description: "Календар подій та служінь з переліком пісень",
+  },
+};
 
 export const dynamic = "force-dynamic";
 

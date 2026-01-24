@@ -53,14 +53,14 @@ const Navbar = () => {
   }, [session.status]);
 
   return (
-    <header className="w-full bg-gray-900">
-      <nav className="max-w-[1440px] mx-auto flex justify-between items-center padding-x py-4">
+    <header className="w-full">
+      <nav className="max-w-[1600px] mx-auto flex justify-between items-center padding-x py-4 bg-gray-900">
         <Link href="/" className="flex justify-center items-center" onClick={handleSmallerScreensNavigation}>
           <Image src="/logoi.svg" alt="New Life logo" width={76} height={10} className="object-contain" />
-          <span className="uppercase font-bold text-3xl text-blue-800">Nl_Songs</span>
+          <span className="uppercase font-bold text-xl sm:text-2xl lg:text-3xl text-blue-800">Nl_Songs</span>
         </Link>
 
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden xl:flex items-center gap-4">
           <NavLinks hasActiveTeam={hasActiveTeam} />
           <ActiveTeamBadge />
           <NotificationBell />
@@ -90,7 +90,7 @@ const Navbar = () => {
         </div>
 
         {session?.data ? (
-          <div className="hidden lg:flex gap-4 text-white font-bold">
+          <div className="hidden xl:flex gap-4 text-white font-bold">
             <Link href="/profile" className="px-4 py-1.5 border-2 border-blue-600 rounded-full" title="Мій профіль">
               Вітаємо, {session.data.user?.name}
             </Link>
@@ -102,12 +102,12 @@ const Navbar = () => {
             </button>
           </div>
         ) : (
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             <AuthLinks />
           </div>
         )}
 
-        <div onClick={handleSmallerScreensNavigation} className="flex lg:hidden">
+        <div onClick={handleSmallerScreensNavigation} className="flex xl:hidden">
           {menuIcon ? (
             <AiOutlineClose size={48} className="text-blue-600" />
           ) : (
@@ -118,8 +118,8 @@ const Navbar = () => {
         <div
           className={
             menuIcon
-              ? "lg:hidden absolute top-[90px] bottom-0 left-0 flex justify-center items-center w-full h-screen bg-gray-900 text-white ease-in duration-300 text-center z-50"
-              : "lg:hidden absolute top-[100px] right-0 left-[-100%] flex justify-center items-center w-full h-screen bg-slate text-white ease-in duration-300"
+              ? "xl:hidden absolute top-[90px] bottom-0 left-0 flex justify-center items-center w-full h-screen bg-gray-900 text-white ease-in duration-300 text-center z-50"
+              : "xl:hidden absolute top-[100px] right-0 left-[-100%] flex justify-center items-center w-full h-screen bg-slate text-white ease-in duration-300"
           }
         >
           <div className="w-full flex flex-col">

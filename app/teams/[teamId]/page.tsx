@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
@@ -11,6 +12,26 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: { teamId: string };
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  try {
+    const teamRes = await getTeamById(params.teamId);
+    if (!teamRes.success || !teamRes.team) {
+      return { title: "Команда" };
+    }
+    const team = teamRes.team;
+    return {
+      title: team.name,
+      description: `${team.name}${team.city ? ` — ${team.city}` : ""}. ${team.description || "Команда прославлення"}`,
+      openGraph: {
+        title: `${team.name} | NL Songs`,
+        description: team.description || `Команда прославлення ${team.name}`,
+      },
+    };
+  } catch {
+    return { title: "Команда" };
+  }
 }
 
 export default async function TeamPage({ params }: PageProps) {

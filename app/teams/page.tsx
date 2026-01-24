@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllTeamsAction } from "@/lib/actions/teamActions";
+
+export const metadata: Metadata = {
+  title: "Команди прославлення",
+  description: "Перегляньте всі команди прославлення. Знайдіть свою команду або створіть нову.",
+  openGraph: {
+    title: "Команди прославлення | NL Songs",
+    description: "Перегляньте всі команди прославлення",
+  },
+};
 
 export const dynamic = "force-dynamic";
 
