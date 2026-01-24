@@ -23,17 +23,22 @@ const Login = () => {
     return setUser((prevInfo) => ({ ...prevInfo, [name]: value }));
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    
     try {
       if (!user.email || !user.password) {
-        setError("please fill all the fields");
+        setError("Заповніть всі поля");
+        setLoading(false);
         return;
       }
+      
       const emailRegex = /^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
       if (!emailRegex.test(user.email)) {
-        setError("invalid email id");
+        setError("Невірний формат email");
+        setLoading(false);
         return;
       }
 
@@ -43,23 +48,23 @@ const Login = () => {
         redirect: false,
       });
 
-      if (res?.error) {
-        console.log(res);
-        setError("error");
+      if (res?.error || !res?.ok) {
+        // Check for specific error types
+        if (res?.error?.includes("GOOGLE_ONLY_USER")) {
+          setError("Ви зареєструвалися через Google. Увійдіть через Google або скористайтеся 'Забули пароль?' щоб встановити пароль.");
+        } else {
+          setError("Невірний email або пароль");
+        }
+        setLoading(false);
+        return;
       }
 
-      setError("");
+      // Success - redirect
+      router.refresh();
       router.push("/songs");
     } catch (error) {
-      console.log(error);
-      setError("");
-    } finally {
+      setError("Виникла помилка при вході");
       setLoading(false);
-
-      setUser({
-        email: "",
-        password: "",
-      });
     }
   };
   return (
@@ -121,32 +126,34 @@ const Login = () => {
                     onChange={handleInputChange}
                   />
                 </div>
+                <div className="mt-2 text-right">
+                  <a
+                    href="/forgot-password"
+                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    Забули пароль?
+                  </a>
+                </div>
 
-                <div className="grid place-items-center w-full mx-auto pt-7 mb-8">
+                {error && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                    <p className="text-red-600 text-sm">{error}</p>
+                  </div>
+                )}
+
+                <div className="grid place-items-center w-full mx-auto pt-7 mb-4">
                   <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-800 text-white text-lg w-full px-8 py-3 rounded-md uppercase font-semibold"
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-800 disabled:opacity-50 text-white text-lg w-full px-8 py-3 rounded-md uppercase font-semibold"
                   >
-                    Login
+                    {loading ? "Вхід..." : "Увійти"}
                   </button>
                 </div>
-                {/* <div className="flex justify-center w-full items-center gap-3 py-3">
-                  <div className="border-b border-gray-800 py-2 w-full px-6" />
-                  <div className="mt-3">or</div>
-                  <div className="border-b border-gray-800 py-2 w-full px-6" />
-                </div> */}
-                {/* <div className="flex justify-center items-center w-full gap-8 pb-8">
-                  <div
-                    onClick={() => signIn("google")}
-                    className="rounded px-6 py-2 shadow cursor-pointer bg-gray-50 grid place-items-center mx-auto mb-4"
-                  >
-                    <Image src={google} alt="bg" width={100} height={100} />
-                  </div>{" "}
-                </div> */}
-                <div className="text-lg text-slate-900 font-medium">
+                <div className="text-lg text-slate-900 font-medium text-center">
                   <span>Ще не маєш акаунту?</span>
                   <a
-                    href="/signup"
+                    href="/signup-page"
                     className="text-blue-600 hover:text-blue-800 pl-3 hover:underline"
                   >
                     Створи акаунт
@@ -154,6 +161,24 @@ const Login = () => {
                 </div>
               </div>
             </form>
+            
+            {/* Google login - outside form to prevent form submission */}
+            <div className="w-full px-5 lg:px-10 pb-6">
+              <div className="flex justify-center w-full items-center gap-3 py-3">
+                <div className="border-b border-gray-300 py-2 w-full" />
+                <div className="text-gray-500 text-sm whitespace-nowrap">або</div>
+                <div className="border-b border-gray-300 py-2 w-full" />
+              </div>
+              <div className="flex justify-center items-center w-full">
+                <button
+                  type="button"
+                  onClick={() => signIn("google", { callbackUrl: "/songs" })}
+                  className="rounded px-6 py-2 shadow cursor-pointer bg-white hover:bg-gray-50 border border-gray-200 transition-colors"
+                >
+                  <Image src={google} alt="Google" width={100} height={100} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

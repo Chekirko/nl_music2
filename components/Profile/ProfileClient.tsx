@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { setActiveTeamAction } from "@/lib/actions/teamActions";
 import Image from "next/image";
+import PasswordChangeSection from "./PasswordChangeSection";
 
 type TeamItem = { id: string; name: string };
 
@@ -20,9 +21,10 @@ interface Props {
   activeTeamId: string | null;
   teams: TeamItem[];
   initialUser: UserData;
+  hasPassword: boolean;
 }
 
-export default function ProfileClient({ activeTeamId, teams, initialUser }: Props) {
+export default function ProfileClient({ activeTeamId, teams, initialUser, hasPassword }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [submittingId, setSubmittingId] = useState<string | null>(null);
@@ -326,6 +328,9 @@ export default function ProfileClient({ activeTeamId, teams, initialUser }: Prop
           </div>
         </div>
       </section>
+
+      {/* Password Change Section - only show if user has password */}
+      {hasPassword && <PasswordChangeSection />}
 
       <section className="bg-white/5 p-6 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold mb-4">Мої команди</h2>

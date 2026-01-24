@@ -23,6 +23,22 @@ const UserSchema = new Schema({
   password: {
     type: String,
   },
+  // Google OAuth fields
+  googleId: {
+    type: String,
+  },
+  authProvider: {
+    type: String,
+    enum: ["credentials", "google", "both"],
+    default: "credentials",
+  },
+  // Password reset fields
+  passwordResetToken: {
+    type: String,
+  },
+  passwordResetExpires: {
+    type: Date,
+  },
   activeTeam: {
     type: Schema.Types.ObjectId,
     ref: "Team",

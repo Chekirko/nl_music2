@@ -45,6 +45,9 @@ export default async function ProfilePage() {
     }
   }
 
+  // Check if user has a password (not Google-only)
+  const hasPassword = Boolean(user.password);
+
   const userData = {
     name: user.name,
     email: user.email,
@@ -59,7 +62,9 @@ export default async function ProfilePage() {
         activeTeamId={activeTeamId} 
         teams={teams} 
         initialUser={userData}
+        hasPassword={hasPassword}
       />
     </div>
   );
 }
+
