@@ -185,3 +185,27 @@ export async function getAllEvents() {
     throw new Error("Failed to fetch events");
   }
 }
+
+export async function toggleEventPublicAction(eventId: string) {
+  try {
+    const access = await canEditEvent(eventId);
+    if (!access.ok) {
+      return { success: false as const, error: access.message };
+    }
+
+    await connectToDB();
+    const event = await Event.findById(eventId).select("isPublic").lean() as { isPublic?: boolean } | null;
+    if (!event) {
+      return { success: false as const, error: "Подію не знайдено" };
+    }
+
+    const newValue = !event.isPublic;
+    await Event.findByIdAndUpdate(eventId, { isPublic: newValue });
+
+    revalidatePath(`/events/${eventId}`);
+    return { success: true as const, isPublic: newValue };
+  } catch (error) {
+    console.error("Failed to toggle event public:", error);
+    return { success: false as const, error: "Не вдалося змінити статус" };
+  }
+}

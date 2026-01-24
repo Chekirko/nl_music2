@@ -48,6 +48,11 @@ const EventSchema = new Schema({
     ref: "User",
     required: false,
   },
+  isPublic: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
 });
 
 const Event = models.Event || model("Event", EventSchema);
