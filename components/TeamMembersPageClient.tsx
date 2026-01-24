@@ -6,7 +6,6 @@ import Link from "next/link";
 import {
   updateTeamMemberRoleAction,
   removeTeamMemberAction,
-  deleteTeam as deleteTeamAction,
 } from "@/lib/actions/teamActions";
 import { searchUsersForTeamAction } from "@/lib/actions/userActions";
 import { sendInvitationAction } from "@/lib/actions/invitationActions";
@@ -63,7 +62,6 @@ const TeamMembersPageClient = ({
   const [searchResults, setSearchResults] = useState<InviteCandidate[]>([]);
   const [searching, setSearching] = useState(false);
   const [inviteBusyId, setInviteBusyId] = useState<string | null>(null);
-  const [deletingTeam, setDeletingTeam] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
   const handleRoleChange = async (userId: string, role: "admin" | "editor" | "member") => {
@@ -90,30 +88,6 @@ const TeamMembersPageClient = ({
       alert("Не вдалося змінити роль учасника");
     } finally {
       setBusyId(null);
-    }
-  };
-
-  const handleDeleteTeam = async () => {
-    setDeletingTeam(true);
-    try {
-      const res = await deleteTeamAction(teamId);
-      if (!res.success) {
-        alert(res.error || "Не вдалося видалити команду");
-        setDeletingTeam(false);
-        return;
-      }
-      if (typeof window !== "undefined") {
-        try {
-          window.dispatchEvent(new CustomEvent("active-team-changed"));
-        } catch {
-          // ignore
-        }
-      }
-      router.push("/profile");
-    } catch (error) {
-      console.error("Failed to delete team", error);
-      alert("Не вдалося видалити команду");
-      setDeletingTeam(false);
     }
   };
 
@@ -209,36 +183,6 @@ const TeamMembersPageClient = ({
             Учасники команди{teamName ? ` «${teamName}»` : ""}
           </h1>
         </div>
-        {isOwner && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button
-                type="button"
-                disabled={deletingTeam}
-                className="px-4 py-2 rounded border border-red-600 text-red-700 text-sm hover:bg-red-50 disabled:opacity-60"
-              >
-                Видалити команду
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="bg-white max-sm:w-72">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Видалити команду?</AlertDialogTitle>
-                <AlertDialogDescription className="text-sm">
-                  Команда{teamName ? ` «${teamName}»` : ""} буде видалена. Усі її
-                  учасники втратять доступ до неї, а всі події (списки) цієї
-                  команди будуть видалені. Пісні залишаться доступними в
-                  загальному списку.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Відміна</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteTeam}>
-                  {deletingTeam ? "Видалення..." : "Видалити"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
       </div>
 
       {canManage && (

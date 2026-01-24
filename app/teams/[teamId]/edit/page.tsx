@@ -32,6 +32,7 @@ export default async function TeamEditPage({ params }: PageProps) {
   
   const currentMember = team.members.find((m: any) => String(m.user) === currentUserId);
   const isAdmin = currentMember?.role === "admin" || team.owner === currentUserId;
+  const isOwner = team.owner === currentUserId;
 
   if (!isAdmin) {
     redirect("/denied");
@@ -39,7 +40,7 @@ export default async function TeamEditPage({ params }: PageProps) {
 
   return (
     <div className="padding-x max-w-[1000px] mx-auto mt-10">
-      <TeamEditForm team={team} />
+      <TeamEditForm team={team} isOwner={isOwner} />
     </div>
   );
 }
