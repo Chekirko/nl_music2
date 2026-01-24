@@ -1,22 +1,48 @@
 "use client";
 
 import { Menu, Transition } from "@headlessui/react";
-import { Fragment, JSX, SVGProps, useEffect, useState } from "react";
+import { Fragment, JSX, SVGProps, useEffect, useState, useCallback } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 import { NavLinksProps } from "@/types";
 import { getActiveTeamAction } from "@/lib/actions/teamActions";
+import { usePathname } from "next/navigation";
 
 export default function AboutDropdownMenu({ handleClick }: NavLinksProps) {
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    getActiveTeamAction().then((res) => {
-      if (res.success && res.team) {
-        setActiveTeamId(res.team.id);
-      }
-    });
+  const loadActiveTeam = useCallback(async () => {
+    const res = await getActiveTeamAction();
+    if (res.success && res.team) {
+      setActiveTeamId(res.team.id);
+    } else {
+      setActiveTeamId(null);
+    }
   }, []);
+
+  // Load on mount
+  useEffect(() => {
+    loadActiveTeam();
+  }, [loadActiveTeam]);
+
+  // Reload when pathname changes (navigation)
+  useEffect(() => {
+    loadActiveTeam();
+  }, [pathname, loadActiveTeam]);
+
+  // Listen for active-team-changed event
+  useEffect(() => {
+    const handleTeamChanged = () => {
+      loadActiveTeam();
+    };
+    window.addEventListener("active-team-changed", handleTeamChanged);
+    window.addEventListener("focus", handleTeamChanged);
+    return () => {
+      window.removeEventListener("active-team-changed", handleTeamChanged);
+      window.removeEventListener("focus", handleTeamChanged);
+    };
+  }, [loadActiveTeam]);
 
   return (
     <div className="top-16 z-30 w-full text-right">

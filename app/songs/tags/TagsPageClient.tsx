@@ -17,7 +17,7 @@ const TagsPageClient = ({ tags }: TagsPageClientProps) => {
   const router = useRouter();
 
   return (
-    <div className="max-w-[1600px] mx-auto flex flex-start gap-4 padding-x min-h-screen">
+    <div className="max-w-[1600px] mx-auto flex flex-start gap-4 padding-x">
       <section className="w-full max-w-full flex-start flex-col">
         <h1 className="head_text text-left">
           <span className="blue_gradient">Доступні теги</span>

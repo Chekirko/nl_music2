@@ -20,7 +20,7 @@ const EventsPage = async () => {
   const hasTeam = active.success && active.team;
   const events = hasTeam ? await getAllEvents() : [];
   return (
-    <div className="padding-x mt-16 max-w-[1600px] mx-auto min-h-screen">
+    <div className="padding-x mt-16 max-w-[1600px] mx-auto">
       {hasTeam ? (
         <>
           <CreateEventLink />

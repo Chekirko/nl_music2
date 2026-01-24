@@ -42,7 +42,7 @@ export default function RootLayout({
       <body className="relative min-h-screen flex flex-col">
         <Providers>
           <Navbar />
-          <main className="flex-grow">{children}</main>
+          <main className="flex-grow min-h-[50vh] pb-16">{children}</main>
           <Footer />
         </Providers>
       </body>

@@ -18,7 +18,7 @@ export default async function TeamsPage() {
   const teams = teamsRes.success ? teamsRes.teams : [];
 
   return (
-    <section className="bg-white min-h-screen">
+    <section className="bg-white">
       <div className="mx-auto max-w-screen-xl px-4 py-8 lg:px-6 lg:py-16">
         <div className="mx-auto mb-8 max-w-screen-sm text-center lg:mb-16">
           <h2 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900">
