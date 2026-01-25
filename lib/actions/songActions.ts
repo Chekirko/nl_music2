@@ -103,39 +103,60 @@ export async function getSongs(
   filter?: string,
   page: number = 1,
   searchQuery?: string,
-  scope: "team" | "all" = "all"
-): Promise<{ songs: GettedSong[]; isNext: boolean }> {
+  scope: string = "all"
+): Promise<{ songs: GettedSong[]; isNext: boolean; totalCount: number }> {
   try {
-    const limit = 30;
+    const limit = 100;
     const skip = (page - 1) * limit;
 
     await connectToDB();
 
     let songs: any[] = [];
     let isNext = false;
+    let totalCount = 0;
 
     const searchFilter = searchQuery
       ? { title: { $regex: searchQuery, $options: "i" } }
       : {};
 
+    // Parse scope: "all", "team", "others", "team:<teamId>"
     let teamFilter: any = {};
     let eventMatch: any = {};
-    if (scope === "team") {
+    let activeTeamId: string | null = null;
+
+    // Get active team for "team" and "others" scopes
+    if (scope === "team" || scope === "others") {
       const access = await requireActiveTeam();
       if (!access.ok) {
-        return { songs: [], isNext: false };
+        return { songs: [], isNext: false, totalCount: 0 };
       }
-      teamFilter = { team: access.teamId };
-      eventMatch = { team: new mongoose.Types.ObjectId(access.teamId) };
+      activeTeamId = access.teamId;
     }
 
+    if (scope === "team") {
+      teamFilter = { team: activeTeamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(activeTeamId!) };
+    } else if (scope === "others") {
+      teamFilter = { team: { $ne: activeTeamId } };
+      eventMatch = { team: { $ne: new mongoose.Types.ObjectId(activeTeamId!) } };
+    } else if (scope.startsWith("team:")) {
+      const specificTeamId = scope.slice(5);
+      teamFilter = { team: specificTeamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(specificTeamId) };
+    }
+    // scope === "all" → no filters (teamFilter = {}, eventMatch = {})
+
     if (!filter || filter === "all") {
-      const totalSongs = await Song.countDocuments({ ...teamFilter, ...searchFilter });
-      songs = await Song.find({ ...teamFilter, ...searchFilter }).lean();
-      isNext = totalSongs > skip + limit;
+      totalCount = await Song.countDocuments({ ...teamFilter, ...searchFilter });
+      songs = await Song.find({ ...teamFilter, ...searchFilter })
+        .sort({ title: 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+      isNext = totalCount > skip + limit;
     } else if (filter === "pop") {
       const popularSongs = await Event.aggregate([
-        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
@@ -147,14 +168,15 @@ export async function getSongs(
       songs = await Song.find({ _id: { $in: songIds }, ...teamFilter, ...searchFilter }).lean();
 
       const totalPopularSongs = await Event.aggregate([
-        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song" } },
       ]);
-      isNext = totalPopularSongs.length > skip + limit;
+      totalCount = totalPopularSongs.length;
+      isNext = totalCount > skip + limit;
     } else if (filter === "rare") {
       const songsWithCount = await Event.aggregate([
-        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
       ]);
@@ -184,24 +206,156 @@ export async function getSongs(
         ...rarelyUsedSongs.map((item) => item.song),
       ];
 
+      totalCount = allRareSongs.length;
       songs = allRareSongs.slice(skip, skip + limit);
-      isNext = allRareSongs.length > skip + limit;
+      isNext = totalCount > skip + limit;
     } else {
       throw new Error("Invalid filter");
     }
 
     const serializedSongs = JSON.parse(JSON.stringify(songs)) as GettedSong[];
-    return { songs: serializedSongs, isNext };
+    return { songs: serializedSongs, isNext, totalCount };
   } catch (error) {
     console.error("Error fetching songs:", error);
     throw new Error("Failed to fetch songs");
   }
 }
 
+/**
+ * Get ranked songs for popular/rare filters
+ * Returns Top-30 primary section and Top-50 secondary section
+ */
+export async function getSongsRanked(
+  filter: "pop" | "rare",
+  scope: string = "all"
+): Promise<{
+  primary: GettedSong[];
+  secondary: GettedSong[];
+  primaryLabel: string;
+  secondaryLabel: string;
+}> {
+  try {
+    await connectToDB();
+
+    const TOP_PRIMARY = 30;
+    const TOP_SECONDARY = 50;
+
+    // Parse scope
+    let teamFilter: any = {};
+    let eventMatch: any = {};
+    let activeTeamId: string | null = null;
+
+    if (scope === "team" || scope === "others") {
+      const access = await requireActiveTeam();
+      if (!access.ok) {
+        return { primary: [], secondary: [], primaryLabel: "", secondaryLabel: "" };
+      }
+      activeTeamId = access.teamId;
+    }
+
+    if (scope === "team") {
+      teamFilter = { team: activeTeamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(activeTeamId!) };
+    } else if (scope === "others") {
+      teamFilter = { team: { $ne: activeTeamId } };
+      eventMatch = { team: { $ne: new mongoose.Types.ObjectId(activeTeamId!) } };
+    } else if (scope.startsWith("team:")) {
+      const specificTeamId = scope.slice(5);
+      teamFilter = { team: specificTeamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(specificTeamId) };
+    }
+
+    if (filter === "pop") {
+      // Get all songs with usage count, sorted by count descending
+      const rankedSongs = await Event.aggregate([
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
+        { $unwind: "$songs" },
+        { $group: { _id: "$songs.song", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: TOP_PRIMARY + TOP_SECONDARY },
+      ]);
+
+      const primaryIds = rankedSongs.slice(0, TOP_PRIMARY).map((s: any) => s._id);
+      const secondaryIds = rankedSongs.slice(TOP_PRIMARY, TOP_PRIMARY + TOP_SECONDARY).map((s: any) => s._id);
+
+      const [primarySongs, secondarySongs] = await Promise.all([
+        Song.find({ _id: { $in: primaryIds } }).lean(),
+        Song.find({ _id: { $in: secondaryIds } }).lean(),
+      ]);
+
+      // Maintain order by count
+      const primaryMap = new Map(primarySongs.map((s: any) => [String(s._id), s]));
+      const secondaryMap = new Map(secondarySongs.map((s: any) => [String(s._id), s]));
+
+      const orderedPrimary = primaryIds
+        .map((id: any) => primaryMap.get(String(id)))
+        .filter(Boolean) as any[];
+      const orderedSecondary = secondaryIds
+        .map((id: any) => secondaryMap.get(String(id)))
+        .filter(Boolean) as any[];
+
+      return {
+        primary: JSON.parse(JSON.stringify(orderedPrimary)) as GettedSong[],
+        secondary: JSON.parse(JSON.stringify(orderedSecondary)) as GettedSong[],
+        primaryLabel: `Топ-${TOP_PRIMARY} найпопулярніших`,
+        secondaryLabel: `Наступні ${TOP_SECONDARY} популярних`,
+      };
+    } else {
+      // filter === "rare"
+      const songsWithCount = await Event.aggregate([
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
+        { $unwind: "$songs" },
+        { $group: { _id: "$songs.song", count: { $sum: 1 } } },
+      ]);
+
+      const songCountMap = new Map<string, number>(
+        songsWithCount.map((s: any) => [String(s._id), s.count])
+      );
+
+      const allSongs = await Song.find({ ...teamFilter }).lean();
+
+      // Categorize songs by usage
+      const neverUsedSongs: any[] = [];
+      const rarelyUsedSongs: Array<{ song: any; count: number }> = [];
+
+      allSongs.forEach((s: any) => {
+        const count = songCountMap.get(String(s._id)) || 0;
+        if (count === 0) {
+          neverUsedSongs.push(s);
+        } else if (count <= 2) {
+          rarelyUsedSongs.push({ song: s, count });
+        }
+      });
+
+      // Sort rarely used by count ascending (least used first)
+      rarelyUsedSongs.sort((a, b) => a.count - b.count);
+
+      // Combine: never used first, then rarely used
+      const allRareSongs = [
+        ...neverUsedSongs,
+        ...rarelyUsedSongs.map((item) => item.song),
+      ];
+
+      const primary = allRareSongs.slice(0, TOP_PRIMARY);
+      const secondary = allRareSongs.slice(TOP_PRIMARY, TOP_PRIMARY + TOP_SECONDARY);
+
+      return {
+        primary: JSON.parse(JSON.stringify(primary)) as GettedSong[],
+        secondary: JSON.parse(JSON.stringify(secondary)) as GettedSong[],
+        primaryLabel: `Топ-${TOP_PRIMARY} найрідкісніших`,
+        secondaryLabel: `Наступні ${TOP_SECONDARY} рідкісних`,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching ranked songs:", error);
+    return { primary: [], secondary: [], primaryLabel: "", secondaryLabel: "" };
+  }
+}
+
 export async function searchSongsAction(params: {
   q: string;
   filter?: string;
-  scope?: "team" | "all";
+  scope?: string;
   mode?: "title" | "text";
 }) {
   try {
@@ -215,13 +369,27 @@ export async function searchSongsAction(params: {
         : { title: rx as any }
       : {};
 
+    // Parse scope: "all", "team", "others", "team:<teamId>"
     let teamFilter: any = {};
     let eventMatch: any = {};
-    if (scope === "team") {
+    let activeTeamId: string | null = null;
+
+    if (scope === "team" || scope === "others") {
       const access = await requireActiveTeam();
       if (!access.ok) return [] as GettedSong[];
-      teamFilter = { team: access.teamId };
-      eventMatch = { team: new mongoose.Types.ObjectId(access.teamId) };
+      activeTeamId = access.teamId;
+    }
+
+    if (scope === "team") {
+      teamFilter = { team: activeTeamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(activeTeamId!) };
+    } else if (scope === "others") {
+      teamFilter = { team: { $ne: activeTeamId } };
+      eventMatch = { team: { $ne: new mongoose.Types.ObjectId(activeTeamId!) } };
+    } else if (scope.startsWith("team:")) {
+      const specificTeamId = scope.slice(5);
+      teamFilter = { team: specificTeamId };
+      eventMatch = { team: new mongoose.Types.ObjectId(specificTeamId) };
     }
 
     const limit = 30;
@@ -229,11 +397,12 @@ export async function searchSongsAction(params: {
 
     if (!filter || filter === "all") {
       songs = await Song.find({ ...teamFilter, ...searchFilter })
+        .sort({ title: 1 })
         .limit(limit)
         .lean();
     } else if (filter === "pop") {
       const popularSongs = await Event.aggregate([
-        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
@@ -245,7 +414,7 @@ export async function searchSongsAction(params: {
         .lean();
     } else if (filter === "rare") {
       const songsWithCount = await Event.aggregate([
-        ...(scope === "team" ? [{ $match: eventMatch }] : []),
+        ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
       ]);
