@@ -2,7 +2,7 @@
 
 > **Comprehensive Deep-Dive Audit** of the Church Worship Song Management Platform
 >
-> Last Updated: January 19, 2026
+> Last Updated: January 25, 2026
 
 ---
 
@@ -347,12 +347,13 @@ export const config = {
 
 ### Server Actions Overview (`lib/actions/`)
 
-#### songActions.ts (720+ lines)
+#### songActions.ts (900+ lines)
 
 | Function | Description |
 |----------|-------------|
-| `getSongs(filter, page, searchQuery, scope)` | Paginated song retrieval with filters (all/pop/rare) |
-| `searchSongsAction({q, filter, scope, mode})` | Search by title or lyrics text |
+| `getSongs(filter, page, searchQuery, scope)` | Paginated song retrieval (100/page, alphabetically sorted). Filters: all/pop/rare. Scopes: all/team/others/team:<id> |
+| `getSongsRanked(filter, scope)` | Returns Top-30 + Top-50 sections for pop/rare filters without pagination |
+| `searchSongsAction({q, filter, scope, mode})` | Search by title or lyrics text with scope support |
 | `getSongById(id)` | Fetch single song with team/copy info populated |
 | `createSongAction(formData)` | Create new song with tags array, updates Tag counts |
 | `updateSongAction(formData)` | Update song, recalculates tag counts (requires editor role) |
@@ -529,9 +530,9 @@ This is the **core AI feature** that extracts songs from external URLs using Goo
 |--------|-------------|
 | **Title Search** | Regex-based title matching |
 | **Text Search** | Search within song lyrics (`blocks.lines`) |
-| **Popularity Filter** | Songs used most frequently in events |
-| **Rarity Filter** | Unused or rarely used songs |
-| **Team Scope** | Filter by active team or all teams |
+| **Popularity Filter** | Top-30 + Top-50 most frequently used in events |
+| **Rarity Filter** | Top-30 + Top-50 unused or rarely used songs |
+| **Team Scope** | all (всі), team (моя команда), others (інші команди), team:<id> |
 | **Tag Filtering** | Filter by song tags |
 | **Alphabetical** | Browse by Ukrainian alphabet |
 
@@ -733,6 +734,9 @@ Radix-based primitives with consistent styling:
 | `TonalChanger` | Key transposition controls |
 | `CopySongButton` | Song copy with conflict handling |
 | `TeamProfile` | Team information display |
+| `TeamScopeFilter` | Grouped scope selector: all/team/others + individual teams |
+| `Pagination` | Page numbers with range display (Показано 1-100 з N) |
+| `SongsFeed` | Main song library grid with pagination or ranked sections |
 | `TeamMembersPageClient` | Member management UI |
 | `YearAccordion` | Events grouped by year |
 | `EventFormBlock` | Event song selection |
