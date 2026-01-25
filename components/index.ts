@@ -11,16 +11,21 @@ import SearchTitle from "./SearchTitle";
 import SearchWord from "./SearchWord";
 import SongLink from "./SongLink";
 import NavDropdownMenu from "./NavDropdownMenu";
+import AboutDropdownMenu from "./AboutDropdownMenu";
 import TagCard from "./TagCard";
 import NavLinks from "./NavLinks";
 import AuthLinks from "./AuthLinks";
 import Providers from "./Providers";
+import TeamScopeFilter from "./TeamScopeFilter";
+import ActiveTeamBadge from "./ActiveTeamBadge";
+import NotificationBell from "./NotificationBell";
 import SearchTitleForEvent from "./SearchTitleForEvent";
 import EventFormBlock from "./EventFormBlock";
 import AgreeModal from "./AgreeModal";
 import { YearAccordion } from "./YearAccordion";
 import EventsPageComponent from "./EventsPageComponent";
 import CreateEventPageComponent from "../archive/components/CreateEventPageComponent";
+import UserGuide from "./UserGuide";
 
 export {
   AgreeModal,
@@ -37,12 +42,17 @@ export {
   SearchWord,
   SongLink,
   NavDropdownMenu,
+  AboutDropdownMenu,
   TagCard,
   NavLinks,
   AuthLinks,
   Providers,
+  TeamScopeFilter,
+  ActiveTeamBadge,
+  NotificationBell,
   YearAccordion,
   EventsPageComponent,
   SearchTitleForEvent,
   EventFormBlock,
+  UserGuide,
 };

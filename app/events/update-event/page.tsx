@@ -1,5 +1,7 @@
 import { getSongs } from "@/lib/actions/songActions";
 import { UpdateEventForm } from "@/components/Events/UpdateEventForm";
+import { canEditEvent } from "@/lib/permissions";
+import { redirect } from "next/navigation";
 
 interface PageProps {
   searchParams: { id?: string };
@@ -7,7 +9,14 @@ interface PageProps {
 
 const UpdateEventPage = async ({ searchParams }: PageProps) => {
   const id = searchParams.id || "";
-  const { songs } = await getSongs("all");
+  if (!id) {
+    redirect("/events");
+  }
+  const access = await canEditEvent(id);
+  if (!access.ok) {
+    redirect("/events");
+  }
+  const { songs } = await getSongs("all", 1, undefined, "team");
 
   return (
     <section className="padding-x w-full max-w-[1600px] mx-auto flex-start flex-col">

@@ -28,19 +28,28 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import AddSongToEventBlock from "@/components/forms/AddSongToEventBlock";
-import { deleteEvent as deleteEventAction, updateEvent as updateEventAction } from "@/lib/actions/eventActions";
+import { deleteEvent as deleteEventAction, updateEvent as updateEventAction, toggleEventPublicAction } from "@/lib/actions/eventActions";
 
 interface Props {
   initialEvent: OurEvent;
   initialSongs: GettedSong[];
+  isTeamMember?: boolean;
+  canTogglePublic?: boolean;
 }
 
-export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
+export const SingleEventClient = ({ 
+  initialEvent, 
+  initialSongs, 
+  isTeamMember = true,
+  canTogglePublic = false,
+}: Props) => {
   const [event, setEvent] = useState<OurEvent>(initialEvent);
   const [songs, setSongs] = useState<GettedSong[]>(initialSongs);
   const [selectedSong, setSelectedSong] = useState<GettedSong | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [pinned, setPinned] = useState(false);
+  const [isPublic, setIsPublic] = useState((initialEvent as any)?.isPublic === true);
+  const [togglingPublic, setTogglingPublic] = useState(false);
   const session = useSession();
   const router = useRouter();
   const path = usePathname();
@@ -84,7 +93,19 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
     setSubmitting(true);
     try {
       const res = await deleteEventAction((event as any)._id);
-      if (res.success) router.push(`/events`);
+      if (res.success) {
+        try {
+          const raw = localStorage.getItem("pinnedEvent");
+          const pinnedEvent = raw ? JSON.parse(raw) : null;
+          if (pinnedEvent?.id === String((event as any)._id)) {
+            localStorage.removeItem("pinnedEvent");
+            emitPinnedChanged();
+          }
+        } catch (err) {
+          console.warn("Failed to clear pinned event after delete", err);
+        }
+        router.push(`/events`);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -135,6 +156,25 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
     }
   };
 
+  const handleTogglePublic = async () => {
+    if (!canTogglePublic) return;
+    setTogglingPublic(true);
+    try {
+      const res = await toggleEventPublicAction((event as any)._id);
+      if (res.success) {
+        setIsPublic(res.isPublic);
+        toast.success(res.isPublic ? "Список тепер публічний" : "Список тепер приватний");
+      } else {
+        toast.error(res.error || "Не вдалося змінити статус");
+      }
+    } catch (err) {
+      console.error("Failed to toggle public", err);
+      toast.error("Не вдалося змінити статус");
+    } finally {
+      setTogglingPublic(false);
+    }
+  };
+
   const onDragEnd = (result: any) => {
     if (!result.destination || !event) return;
     const items = [...event.songs];
@@ -173,15 +213,49 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
 
   return (
     <section className="padding-x py-5 max-w-[1600px] mx-auto">
-      <h1 className="head_text  text-primary-600">{event?.title}</h1>
+      <div className="flex items-center gap-3 flex-wrap">
+        <h1 className="head_text text-primary-600">{event?.title}</h1>
+        {isPublic && (
+          <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+            Публічний
+          </span>
+        )}
+      </div>
+      
       <div className="flex flex-col items-start gap-4 mt-8">
-        <Link
-          href={`/events/update-event?id=${(event as any)._id}`}
-          className="rounded-full  bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
-        >
-          Редагувати подію
-        </Link>
-        {session.data?.user?.role === "admin" && (
+        {/* Edit link - only for team members */}
+        {isTeamMember && (
+          <Link
+            href={`/events/update-event?id=${(event as any)._id}`}
+            className="rounded-full bg-blue-600 hover:bg-blue-800 px-5 py-1.5 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
+          >
+            Редагувати подію
+          </Link>
+        )}
+        
+        {/* Toggle public button - only for admin/editor */}
+        {canTogglePublic && (
+          <button
+            type="button"
+            onClick={handleTogglePublic}
+            disabled={togglingPublic}
+            className={`rounded-full px-5 py-1.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 disabled:opacity-60 ${
+              isPublic
+                ? "bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-400"
+                : "bg-green-600 text-white hover:bg-green-700"
+            }`}
+          >
+            {togglingPublic 
+              ? "Змінюємо..." 
+              : isPublic 
+                ? "Зробити приватним" 
+                : "Зробити публічним"
+            }
+          </button>
+        )}
+        
+        {/* Delete button - for team admin/editor */}
+        {canTogglePublic && (
           <AgreeModal
             type={"Видалити подію"}
             question={"Підтвердити?"}
@@ -277,7 +351,7 @@ export const SingleEventClient = ({ initialEvent, initialSongs }: Props) => {
         </button>
       </div>
 
-      {session.data?.user?.role === "admin" && (
+      {canTogglePublic && (
         <>
           <div className="border-2 mt-10 w-1/5 border-gray-300 rounded"></div>
           <form onSubmit={handleAddSong} className="mt-10 flex flex-col w-fit items-end gap-2">

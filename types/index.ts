@@ -29,15 +29,19 @@ export interface SongBlockProps {
   block: Block;
   setSong: (song: GettedSong) => void;
   index: number;
+  onRemove?: () => void;
+  canRemove?: boolean;
 }
 
 export interface OurEvent {
-  _id: number;
+  _id: string;
   title: string;
   live: string;
   playList?: string;
   songs: Array<EventSong>;
   date?: Date;
+  team?: string;
+  createdBy?: string;
 }
 
 export interface EventSong {
@@ -99,10 +103,10 @@ export interface Block {
 }
 
 export interface GettedSong {
-  _id: number;
+  _id: string;
   title: string;
   rythm: string;
-  tags: string;
+  tags: string[];
   comment: string;
   key: string;
   mode: string;
@@ -110,19 +114,123 @@ export interface GettedSong {
   video: string;
   ourVideo: string;
   blocks: Array<Block>;
+  team?: string;
+  teamName?: string;
+  createdBy?: string;
+  copiedFrom?: string;
+  copiedFromTitle?: string;
+  copiedFromTeamId?: string;
+  copiedFromTeamName?: string;
+  copiedBy?: string;
+  isOriginal?: boolean;
+  copiedAt?: string;
 }
 
+export interface SongCopyConflictPreview {
+  id: string;
+  title: string;
+  teamName?: string;
+  blocks: Array<Block>;
+}
+
+export interface SongCopyContext {
+  activeTeamId: string | null;
+  canCopy: boolean;
+  reason?: string;
+  isSameTeam: boolean;
+  hasActiveTeam: boolean;
+  alreadyCopiedSongId?: string | null;
+  alreadyCopiedSongTitle?: string;
+  sourceTeamId?: string | null;
+  sourceTeamName?: string | null;
+}
+
+export type CopySongResult =
+  | { status: "success"; songId: string; teamId: string }
+  | { status: "already_copied"; songId: string }
+  | { status: "conflict"; existing: SongCopyConflictPreview }
+  | { status: "same_team" }
+  | { status: "forbidden"; reason: string }
+  | { status: "error"; message: string };
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  image?: string;
+  nickname?: string;
+  activeTeam?: string;
+  teams?: string[];
+}
+
+export interface TeamMember {
+  user: string;
+  role: "admin" | "editor" | "member";
+  joinedAt: Date;
+  invitedBy?: string;
+  instrument?: string;
+}
+
+export interface TeamMemberProfile {
+  id: string;
+  name: string;
+  email: string;
+  nickname?: string;
+  image?: string;
+  instrument: string;
+  role: string;
+}
+
+export interface Team {
+  _id: string;
+  name: string;
+  description?: string;
+  avatar?: string;
+  coverImage?: string;
+  city?: string;
+  church?: string;
+  owner: string;
+  members: TeamMember[];
+  settings: {
+    isPrivate: boolean;
+    allowCopying: boolean;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Invitation {
+  _id: string;
+  team: string;
+  from: string;
+  to: string;
+  status: "pending" | "accepted" | "declined" | "cancelled";
+  expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface Notification {
+  _id: string;
+  user: string;
+  type: "team_invite" | "role_change" | "removed_from_team" | "team_update";
+  data: any;
+  isRead: boolean;
+  createdAt: Date;
+}
 export interface CardListProps {
   songs: Array<GettedSong>;
+  activeTeamId?: string | null;
 }
 
 export interface AlphCardProps {
   letter: string;
   songs: Array<GettedSong>;
+  activeTeamId?: string | null;
 }
 export interface TagCardProps {
   tag: string | null;
   songs: Array<GettedSong>;
+  activeTeamId?: string | null;
 }
 
 export interface SongLinkProps {

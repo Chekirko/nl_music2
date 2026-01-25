@@ -1,10 +1,9 @@
 "use client";
 import { SongLink } from "@/components";
-import { Block, GettedSong } from "@/types";
+import { Block, GettedSong, SongCopyContext } from "@/types";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { EditSongBlockDialog } from "@/components/EditSongBlockDialog";
 import {
   MusicalNoteIcon,
@@ -24,15 +23,19 @@ import { replaceBadChords, pureTranspose, changeChordsByTonal } from "@/lib/chor
 import EditTonalModal from "@/components/EditTonalModal";
 import { createProgression } from "@/lib/progression";
 import { updateSongAction, deleteSong as deleteSongAction } from "@/lib/actions/songActions";
+import CopySongButton from "@/components/CopySongButton";
+import { TagBadge } from "@/components/tags";
 
 interface Props {
   id: string;
   initialSong: GettedSong;
+  canEdit: boolean;
+  canDelete: boolean;
+  initialCopyContext: SongCopyContext;
 }
 
-const SingleSongClient = ({ id, initialSong }: Props) => {
+const SingleSongClient = ({ id, initialSong, canEdit, canDelete, initialCopyContext }: Props) => {
   const router = useRouter();
-  const session = useSession();
 
   const [song, setSong] = useState<GettedSong>(initialSong);
   const [viewText, setViewText] = useState(true);
@@ -49,6 +52,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
 
   const handleDeleteSong = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canDelete) return;
     setSubmitting(true);
     try {
       const res = await deleteSongAction(id);
@@ -210,7 +214,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const onDragEnd = (result: any) => {
-    if (!result.destination || !isOriginTonal) return;
+    if (!canEdit || !result.destination || !isOriginTonal) return;
     const updatedBlocks = Array.from(renderedBlocks!);
     const [reorderedBlock] = updatedBlocks.splice(result.source.index, 1);
     updatedBlocks.splice(result.destination.index, 0, reorderedBlock);
@@ -221,7 +225,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const handleDoubleBlock = (index: number) => {
-    if (!renderedBlocks || !isOriginTonal) return;
+    if (!canEdit || !renderedBlocks || !isOriginTonal) return;
     const newBlock = { ...renderedBlocks[index] };
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks.splice(index + 1, 0, newBlock);
@@ -232,7 +236,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const handleDeleteBlock = (index: number) => {
-    if (!renderedBlocks || !song) return;
+    if (!canEdit || !renderedBlocks || !song) return;
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks.splice(index, 1);
     setRenderedBlocks(updatedBlocks);
@@ -242,7 +246,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
   };
 
   const handleUpdateBlock = (index: number, block: Block) => {
-    if (!renderedBlocks || !song || !isOriginTonal) return;
+    if (!canEdit || !renderedBlocks || !song || !isOriginTonal) return;
     const updatedBlocks = [...renderedBlocks];
     updatedBlocks[index] = block;
     setRenderedBlocks(updatedBlocks);
@@ -251,12 +255,35 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
     updateSong(updatedSong);
   };
 
-  const tags = song?.tags !== "" ? song?.tags?.split(" ") : null;
+  // Теги тепер масив
+  const tags = song?.tags?.length > 0 ? song.tags : null;
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="padding-x max-w-[1600px] mx-auto">
         <h1 className="head_text  text-blue-600">{song?.title}</h1>
+        <div className="mt-2">
+          <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1 text-sm font-medium text-blue-700 border border-blue-200">
+            Пісня {song?.teamName ? `команди ${song.teamName}` : "загального списку"}
+          </span>
+        </div>
+        {song?.copiedFrom && (
+          <div className="mt-1 text-sm text-gray-600">
+            Скопійовано з{" "}
+            <Link href={`/songs/${song.copiedFrom}`} className="font-semibold text-blue-600 underline">
+              {song.copiedFromTitle || "оригінальної версії"}
+            </Link>
+            {song.copiedFromTeamName && (
+              <span className="ml-1 text-gray-500">(команда {song.copiedFromTeamName})</span>
+            )}
+          </div>
+        )}
+        <CopySongButton
+          songId={id}
+          songTitle={song?.title || ""}
+          initialContext={initialCopyContext}
+          isOriginalSong={song?.isOriginal !== false ? true : false}
+        />
         <div className="flex flex-start gap-8 mt-5">
           <button className="bg-blue-100 hover:bg-blue-200 w-12 h-12 rounded-full flex flex-center" onClick={handleViewChords}>
             <MusicalNoteIcon className="w-8 h-8 text-gray-500" />
@@ -279,9 +306,9 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
             )}
           </button>
         </div>
-        <div className="border-2 mt-5 w-1/5 border-gray-300 rounded"></div>
+        <div className="border-2 mt-5 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>
         <p className="mt-5">Початкова тональність: {song?.key}</p>
-        {session.data?.user && session.data?.user.role === "admin" && (
+        {canEdit && (
           <div className="sm:flex items-center flex-wrap gap-x-4">
             <div>Змінити початкову тональність</div>
             <EditTonalModal
@@ -307,20 +334,17 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
             </Link>
           </p>
         )}
-        <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>
+        <div className="border-2 my-5 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>
         <div className="flex flex-wrap gap-2">
           {tags && tags.map((tag) => (
-            <button
-              className="px-5 py-1.5 text-sm bg-blue-600 hover:bg-blue-800 rounded-full text-white"
+            <TagBadge
               key={tag}
-              type="button"
+              name={tag}
               onClick={() => router.push(`/songs/tags/${tag}?forwardedTag=${tag}`)}
-            >
-              {tag}
-            </button>
+            />
           ))}
         </div>
-        {tags && <div className="border-2 my-5 w-1/5 border-gray-300 rounded"></div>}
+        {tags && <div className="border-2 my-5 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>}
 
         <TonalChanger progression={progression} currentTonal={currentTonal!} changeTonal={changeTonal} submitting={submitting} />
 
@@ -368,7 +392,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
 
                   return (
                     <Draggable
-                      isDragDisabled={!session.data?.user || session.data?.user.role !== "admin" || submitting}
+                      isDragDisabled={!canEdit || submitting}
                       key={index}
                       draggableId={index.toString()}
                       index={index}
@@ -383,7 +407,7 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
                         >
                           <div className="flex justify-between gap-10 mb-3">
                             <h3 className="font-semibold text-blue-900 underline">{block.name}</h3>
-                            {session.data?.user && session.data?.user.role === "admin" && (
+                            {canEdit && (
                               <div className="flex gap-3">
                                 <AlertDialogForSongPage
                                   type={1}
@@ -420,25 +444,23 @@ const SingleSongClient = ({ id, initialSong }: Props) => {
           </Droppable>
         </div>
 
-        <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
-          <SongLink route="/update-song" type="Змінити пісню" id={id} />
-        </div>
-        <div className="border-2 mb-6 w-1/5 border-gray-300 rounded"></div>
-        <div>
-          <iframe
-            width="500"
-            height="281"
-            src={song?.video}
-            title={song?.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          ></iframe>
-          <style jsx>{`
-            @media (max-width: 600px) {
-              iframe { width: 100%; }
-            }
-          `}</style>
-        </div>
-        {session.data?.user?.role === "admin" && (
+        {canEdit && (
+          <div className="bg-blue-600 text-white hover:bg-white hover:text-blue-600 p-2 rounded w-max mb-6">
+            <SongLink route="/update-song" type="Змінити пісню" id={id} />
+          </div>
+        )}
+        <div className="border-2 mb-6 w-full sm:w-1/3 lg:w-1/5 border-gray-300 rounded"></div>
+        {song?.video && song.video.trim() !== "" && (
+          <div className="w-full max-w-[500px]">
+            <iframe
+              className="w-full aspect-video"
+              src={song.video}
+              title={song?.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            ></iframe>
+          </div>
+        )}
+        {canDelete && (
           <div className="mt-6">
             <AgreeModal
               type="Видалити пісню"

@@ -14,7 +14,8 @@ const SongSchema = new Schema({
     required: [false, "Comment is not required"],
   },
   tags: {
-    type: String,
+    type: [String],
+    default: [],
     required: [false, "Tags is not required"],
   },
   key: {
@@ -23,7 +24,7 @@ const SongSchema = new Schema({
   },
   mode: {
     type: String,
-    required: [false, "Video is not required"],
+    required: [false, "Mode is not required"],
   },
   blocks: {
     type: [
@@ -48,7 +49,40 @@ const SongSchema = new Schema({
     type: String,
     required: [false, "OurVideo is not required"],
   },
+  team: {
+    type: Schema.Types.ObjectId,
+    ref: "Team",
+    required: false,
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  copiedFrom: {
+    type: Schema.Types.ObjectId,
+    ref: "Song",
+    required: false,
+  },
+  copiedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  copiedAt: {
+    type: Date,
+    required: false,
+  },
+  isOriginal: {
+    type: Boolean,
+    default: true,
+  },
 });
+
+// Унікальність назви пісні в межах команди
+// Якщо в БД уже є дублікати в одній команді, побудова індексу впаде
+// Переконайтесь, що `team` заповнено для всіх документів і немає дублів
+SongSchema.index({ team: 1, title: 1 }, { unique: true, name: "uniq_team_title" });
 
 const Song = models.Song || model("Song", SongSchema);
 

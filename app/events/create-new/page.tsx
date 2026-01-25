@@ -19,9 +19,16 @@
 
 import { CreateEventForm } from "@/components/Events/CreateEventForm";
 import { getSongs } from "@/lib/actions/songActions";
+import { canCreateEvent } from "@/lib/permissions";
+import { redirect } from "next/navigation";
 
 const CreateEventPage = async () => {
-  const { songs } = await getSongs("all");
+  const access = await canCreateEvent();
+  if (!access.ok) {
+    redirect("/events");
+  }
+
+  const { songs } = await getSongs("all", 1, undefined, "team");
 
   return (
     <section className="padding-x max-w-[1600px] mx-auto w-full flex-start flex-col">

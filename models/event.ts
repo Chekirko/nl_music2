@@ -38,6 +38,21 @@ const EventSchema = new Schema({
     // default: Date.now(),
     required: [true, "Date is required"],
   },
+  team: {
+    type: Schema.Types.ObjectId,
+    ref: "Team",
+    required: false,
+  },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  isPublic: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
 });
 
 const Event = models.Event || model("Event", EventSchema);

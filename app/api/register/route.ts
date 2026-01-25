@@ -3,19 +3,39 @@ import User from "@/models/user";
 import bcryptjs from "bcryptjs";
 import { NextResponse, NextRequest } from "next/server";
 
+const MIN_PASSWORD_LENGTH = 8;
+
 export async function POST(request: NextRequest) {
   try {
     await connectToDB();
     const { name, email, password } = await request.json();
 
+    // Validate required fields
+    if (!name || !email || !password) {
+      return NextResponse.json(
+        { error: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    // Password validation - only for NEW registrations
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return NextResponse.json(
+        { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` },
+        { status: 400 }
+      );
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
     let role = "user";
-    if (email && email === "victorche59@gmail.com") {
+    if (normalizedEmail === "victorche59@gmail.com") {
       role = "admin";
     }
 
-    const user = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
-    if (user) {
+    if (existingUser) {
       return NextResponse.json(
         { error: "User already exists" },
         { status: 400 }
@@ -27,9 +47,10 @@ export async function POST(request: NextRequest) {
 
     const newUser = new User({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       role,
+      authProvider: "credentials",
     });
 
     const savedUser = await newUser.save();
@@ -39,7 +60,12 @@ export async function POST(request: NextRequest) {
       success: true,
       savedUser,
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("Registration error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Registration failed" },
+      { status: 500 }
+    );
   }
 }
+

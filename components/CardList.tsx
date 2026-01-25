@@ -2,12 +2,12 @@ import { alphabet } from "@/constants";
 import AlphCard from "./AlphCard";
 import { CardListProps } from "@/types";
 
-const CardList = ({ songs }: CardListProps) => {
+const CardList = ({ songs, activeTeamId }: CardListProps) => {
   return (
     <section className="feed">
       <div className="prompt_layout">
         {alphabet.map((letter) => (
-          <AlphCard letter={letter} songs={songs} key={letter} />
+          <AlphCard letter={letter} songs={songs} activeTeamId={activeTeamId} key={letter} />
         ))}
       </div>
     </section>

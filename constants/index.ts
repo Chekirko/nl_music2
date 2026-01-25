@@ -31,8 +31,20 @@ export const alphabet = [
   "я",
 ];
 
+// All available musical keys (major and minor)
+export const AVAILABLE_KEYS = [
+  "C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B",
+  "Cm", "C#m", "Dbm", "Dm", "D#m", "Ebm", "Em", "Fm", "F#m", "Gbm", "Gm", "G#m", "Abm", "Am", "A#m", "Bbm", "Bm"
+] as const;
+
+export type MusicalKey = typeof AVAILABLE_KEYS[number];
+
+// Block display versions: 1 = text+chords, 2 = text only, 3 = chords only
+export const BLOCK_VERSIONS = ["1", "2", "3"] as const;
+export type BlockVersion = typeof BLOCK_VERSIONS[number];
+
 export const defaultEvent = {
-  _id: 1,
+  _id: "1",
   title: "",
   live: "",
   playList: "",
@@ -168,10 +180,10 @@ export const defaultEvent = {
 };
 
 export const defaultSong = {
-  _id: 1,
+  _id: "1",
   title: "",
   rythm: "",
-  tags: "",
+  tags: [],
   comment: "",
   key: "",
   mode: "",
@@ -208,72 +220,6 @@ export const defaultSong = {
       version: "1",
       lines: "",
       ind: "5",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "6",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "7",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "8",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "9",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "10",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "11",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "12",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "13",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "14",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "15",
-    },
-    {
-      name: "",
-      version: "1",
-      lines: "",
-      ind: "16",
     },
   ],
 };
