@@ -25,6 +25,7 @@ import AgreeModal from "./AgreeModal";
 import { YearAccordion } from "./YearAccordion";
 import EventsPageComponent from "./EventsPageComponent";
 import CreateEventPageComponent from "../archive/components/CreateEventPageComponent";
+import UserGuide from "./UserGuide";
 
 export {
   AgreeModal,
@@ -53,4 +54,5 @@ export {
   EventsPageComponent,
   SearchTitleForEvent,
   EventFormBlock,
+  UserGuide,
 };
