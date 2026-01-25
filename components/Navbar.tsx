@@ -57,7 +57,7 @@ const Navbar = () => {
       <nav className="max-w-[1600px] mx-auto flex justify-between items-center padding-x py-4 bg-gray-900">
         <Link href="/" className="flex justify-center items-center" onClick={handleSmallerScreensNavigation}>
           <Image src="/logoi.svg" alt="New Life logo" width={76} height={10} className="object-contain" />
-          <span className="uppercase font-bold text-xl sm:text-2xl lg:text-3xl text-blue-800">Nl_Songs</span>
+          <span className="uppercase font-bold text-xl sm:text-2xl lg:text-3xl text-blue-800">NL-Worship</span>
         </Link>
 
         <div className="hidden xl:flex items-center gap-4">
