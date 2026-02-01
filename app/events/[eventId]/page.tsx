@@ -65,7 +65,7 @@ const SingleEventPage = async ({ params }: SingleEventPageProps) => {
   // Get songs - for team members get team songs, otherwise empty (guests can't add songs)
   let songsResponse;
   if (isTeamMember && activeTeamId === eventTeamId) {
-    songsResponse = await getSongs("all", 1, undefined, "team");
+    songsResponse = await getSongs("all", 1, undefined, "team", 0);
   } else {
     // Guest viewing public event - no songs to add
     songsResponse = { songs: [] };

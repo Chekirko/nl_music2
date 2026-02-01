@@ -28,7 +28,7 @@ const CreateEventPage = async () => {
     redirect("/events");
   }
 
-  const { songs } = await getSongs("all", 1, undefined, "team");
+  const { songs } = await getSongs("all", 1, undefined, "team", 0);
 
   return (
     <section className="padding-x max-w-[1600px] mx-auto w-full flex-start flex-col">

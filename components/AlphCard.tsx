@@ -8,6 +8,11 @@ const AlphCard = ({ letter, songs, activeTeamId }: AlphCardProps) => {
     song.title.toLowerCase().startsWith(letter.toLowerCase())
   );
 
+  // Don't render the card if there are no songs for this letter
+  if (filteredSongs.length === 0) {
+    return null;
+  }
+
   return (
     <div className="alph_card">
       <div className="flex justify-between items-start gap-5">
