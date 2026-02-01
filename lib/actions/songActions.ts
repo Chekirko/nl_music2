@@ -103,11 +103,12 @@ export async function getSongs(
   filter?: string,
   page: number = 1,
   searchQuery?: string,
-  scope: string = "all"
+  scope: string = "all",
+  limit: number = 100
 ): Promise<{ songs: GettedSong[]; isNext: boolean; totalCount: number }> {
   try {
-    const limit = 100;
-    const skip = (page - 1) * limit;
+    const skip = limit > 0 ? (page - 1) * limit : 0;
+    const noLimit = limit === 0;
 
     await connectToDB();
 
@@ -148,21 +149,25 @@ export async function getSongs(
 
     if (!filter || filter === "all") {
       totalCount = await Song.countDocuments({ ...teamFilter, ...searchFilter });
-      songs = await Song.find({ ...teamFilter, ...searchFilter })
-        .sort({ title: 1 })
-        .skip(skip)
-        .limit(limit)
-        .lean();
-      isNext = totalCount > skip + limit;
+      const query = Song.find({ ...teamFilter, ...searchFilter }).sort({ title: 1 });
+      if (noLimit) {
+        songs = await query.lean();
+        isNext = false;
+      } else {
+        songs = await query.skip(skip).limit(limit).lean();
+        isNext = totalCount > skip + limit;
+      }
     } else if (filter === "pop") {
-      const popularSongs = await Event.aggregate([
+      const pipeline: any[] = [
         ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
         { $unwind: "$songs" },
         { $group: { _id: "$songs.song", count: { $sum: 1 } } },
         { $sort: { count: -1 } },
-        { $skip: skip },
-        { $limit: limit },
-      ]);
+      ];
+      if (!noLimit) {
+        pipeline.push({ $skip: skip }, { $limit: limit });
+      }
+      const popularSongs = await Event.aggregate(pipeline);
 
       const songIds = popularSongs.map((s: any) => s._id);
       songs = await Song.find({ _id: { $in: songIds }, ...teamFilter, ...searchFilter }).lean();
@@ -173,7 +178,7 @@ export async function getSongs(
         { $group: { _id: "$songs.song" } },
       ]);
       totalCount = totalPopularSongs.length;
-      isNext = totalCount > skip + limit;
+      isNext = noLimit ? false : totalCount > skip + limit;
     } else if (filter === "rare") {
       const songsWithCount = await Event.aggregate([
         ...(Object.keys(eventMatch).length > 0 ? [{ $match: eventMatch }] : []),
@@ -207,8 +212,8 @@ export async function getSongs(
       ];
 
       totalCount = allRareSongs.length;
-      songs = allRareSongs.slice(skip, skip + limit);
-      isNext = totalCount > skip + limit;
+      songs = noLimit ? allRareSongs : allRareSongs.slice(skip, skip + limit);
+      isNext = noLimit ? false : totalCount > skip + limit;
     } else {
       throw new Error("Invalid filter");
     }

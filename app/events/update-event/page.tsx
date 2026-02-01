@@ -16,7 +16,7 @@ const UpdateEventPage = async ({ searchParams }: PageProps) => {
   if (!access.ok) {
     redirect("/events");
   }
-  const { songs } = await getSongs("all", 1, undefined, "team");
+  const { songs } = await getSongs("all", 1, undefined, "team", 0);
 
   return (
     <section className="padding-x w-full max-w-[1600px] mx-auto flex-start flex-col">
